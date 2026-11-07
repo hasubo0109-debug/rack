@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="RACK">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>RACK</title>
+<style>
+:root{
+  --ink:#000; --paper:#fff; --field:#F1F2F4; --line:#DCDEE2; --mute:#666B72;
+  --red:#D50032; --blue:#0047AB; --yellow:#F2C200; --green:#00863F;
+  --pad:16px; --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  font-size:15px;line-height:1.5;overscroll-behavior-y:none}
+body{padding-bottom:calc(72px + var(--safe-b))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.hide{display:none!important}
+
+header{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:2px solid var(--ink);
+  padding:calc(env(safe-area-inset-top,0px) + 10px) var(--pad) 10px;display:flex;align-items:baseline;gap:10px}
+.brand{font-weight:900;font-size:19px;letter-spacing:-.03em}
+.brand em{font-style:normal;color:var(--red)}
+.hdate{margin-left:10px;font-size:12px;color:var(--mute)}
+.ver{font-size:11px;color:var(--mute);font-weight:700;padding:6px 0 6px 8px;letter-spacing:.01em}
+
+nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--paper);border-top:2px solid var(--ink);padding-bottom:var(--safe-b)}
+nav button{padding:11px 0 10px;font-size:10px;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button b{font-size:17px;font-weight:800;letter-spacing:-.02em}
+nav button.on{color:var(--ink)} nav button.on b{color:var(--red)}
+
+main{padding:var(--pad) var(--pad) 28px;max-width:680px;margin:0 auto}
+h2{font-size:12px;font-weight:700;margin:24px 0 8px;color:var(--mute);letter-spacing:.02em}
+h2:first-child{margin-top:2px}
+
+.card{border:1px solid var(--line);border-radius:12px;background:var(--paper);margin-bottom:10px;overflow:hidden}
+.card.hero{border:2px solid var(--ink)}
+.pad{padding:14px}
+.ttl{font-weight:800;font-size:17px;letter-spacing:-.01em}
+.sub{font-size:12.5px;color:var(--mute);margin-top:2px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1.5px solid var(--ink);
+  border-radius:9px;padding:11px 14px;font-weight:700;font-size:14px;background:var(--paper)}
+.btn.fill{background:var(--ink);color:var(--paper)}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.ghost{border-color:var(--line);color:var(--mute);font-weight:600}
+.btn.wide{width:100%}
+.btn.big{padding:17px 0;font-size:17px;font-weight:800;border-radius:11px}
+.btn.sm{padding:7px 11px;font-size:13px;border-radius:8px}
+.row{display:flex;gap:8px;align-items:center}
+.row.wrap{flex-wrap:wrap}
+.grow{flex:1}
+.mute{color:var(--mute)} .small{font-size:12px}
+.empty{border:1px dashed var(--line);border-radius:12px;padding:20px 16px;text-align:center;color:var(--mute);font-size:13px}
+.empty b{display:block;color:var(--ink);font-size:15px;margin-bottom:5px}
+.bar{height:6px;background:var(--field);border-radius:99px;overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--red)}
+
+input[type=text],input[type=number],select,textarea{
+  width:100%;background:var(--field);border:1px solid transparent;border-radius:9px;padding:11px 10px;
+  font-size:16px;appearance:none}
+input:focus,select:focus{outline:none;border-color:var(--ink);background:var(--paper)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+label.f{display:block;font-size:12px;color:var(--mute);margin:12px 0 5px}
+
+/* stepper */
+.stp{display:flex;align-items:center;background:var(--field);border-radius:10px;overflow:hidden}
+.stp button{width:42px;height:44px;font-size:20px;font-weight:700;color:var(--mute);flex:0 0 auto}
+.stp button:active{background:var(--line)}
+.stp input{background:none;border:0;text-align:center;font-weight:800;font-size:17px;padding:0;min-width:0}
+.stp.lg button{width:50px;height:54px;font-size:24px}
+.stp.lg input{font-size:22px}
+
+/* session */
+.exhd{display:flex;align-items:center;gap:8px;padding:13px 14px 4px}
+.exhd .nm{font-weight:800;font-size:16px}
+.exhd .tag{font-size:11px;color:var(--mute);margin-left:auto;text-align:right;line-height:1.3}
+.sets{padding:6px 10px 12px}
+.st{display:grid;grid-template-columns:18px 1fr 1fr 50px;gap:6px;align-items:center;margin-bottom:8px}
+.st .stp button{width:32px;height:44px;font-size:18px}
+.st .stp input{font-size:16px}
+.st .idx{font-size:12px;color:var(--mute);font-weight:700;text-align:center}
+.st .chk{height:44px;border:2px solid var(--line);border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:19px;color:#C9CCD1;font-weight:800;transition:background .12s,border-color .12s,color .12s}
+.st.next .idx{color:var(--red)}
+.st.next .chk{border-color:var(--red);color:var(--red)}
+.st.done .chk{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.st.done .stp{opacity:.5}
+.st .u{font-size:10px;color:var(--mute);text-align:center;margin-top:-4px}
+.sthead{display:grid;grid-template-columns:18px 1fr 1fr 50px;gap:6px;padding:0 10px 4px;font-size:10px;color:var(--mute);text-align:center}
+.goal{padding:0 14px 10px;font-size:11.5px;color:var(--mute)}
+.stickybar{position:fixed;left:0;right:0;bottom:calc(72px + var(--safe-b));z-index:38;transition:bottom .2s;
+  padding:9px var(--pad);background:var(--paper);border-top:1px solid var(--line);display:flex;gap:8px;max-width:680px;margin:0 auto}
+
+/* chips */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.chip{flex:0 0 auto;border:1.5px solid var(--line);border-radius:99px;padding:7px 13px;font-size:13px;font-weight:700;color:var(--mute)}
+.chip.on{border-color:var(--ink);color:var(--ink)}
+
+/* timer bar */
+#tbar{position:fixed;left:0;right:0;bottom:calc(72px + var(--safe-b));z-index:46;display:none;
+  background:var(--ink);color:var(--paper);padding:10px 14px;align-items:center;gap:10px}
+#tbar.on{display:flex}
+body.tmr .stickybar{bottom:calc(126px + var(--safe-b))}
+body.tmr{padding-bottom:calc(126px + var(--safe-b))}
+#tbar .t{font-size:25px;font-weight:800;letter-spacing:-.04em;font-variant-numeric:tabular-nums;min-width:74px}
+#tbar button{color:var(--paper);border:1.5px solid rgba(255,255,255,.45);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700}
+#tbar .pg{position:absolute;left:0;bottom:0;height:3px;background:var(--red);transition:width .3s linear}
+
+/* focus */
+#focus{position:fixed;inset:0;z-index:60;background:var(--paper);display:none;flex-direction:column;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(var(--safe-b) + 12px)}
+#focus.on{display:flex}
+.fxtop{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mute)}
+#fxTimer{margin-left:auto;font-size:17px;font-weight:800;color:var(--red);letter-spacing:-.02em}
+.fxex{font-size:25px;font-weight:900;letter-spacing:-.03em;margin-top:10px;line-height:1.15}
+.fxset{font-size:13px;color:var(--mute);margin-top:2px}
+.fxkg{font-size:74px;font-weight:900;letter-spacing:-.06em;line-height:1;font-variant-numeric:tabular-nums}
+.fxkg small{font-size:22px;font-weight:800;letter-spacing:0;margin-left:3px}
+.plates{display:flex;gap:3px;align-items:center;height:42px;margin-top:8px;flex-wrap:wrap}
+.plate{width:12px;border-radius:2px;border:1px solid rgba(0,0,0,.25)}
+.plates .barline{flex:0 0 20px;height:5px;background:#9AA0A6;border-radius:2px}
+.plates .txt{font-size:11px;color:var(--mute);margin-left:6px}
+.fxmid{margin:auto 0}
+.fxin .lb{font-size:11px;color:var(--mute);text-align:center;margin-bottom:4px}
+.fxrow2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.fxbtn{display:grid;grid-template-columns:1fr 2.2fr;gap:8px;margin-top:10px}
+.fxbtn .btn{padding:17px 0;font-size:16px}
+
+/* sheet */
+#sheet{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.35);display:none;align-items:flex-end}
+#sheet.on{display:flex}
+#sheet .inner{background:var(--paper);width:100%;max-height:92vh;border-radius:16px 16px 0 0;
+  display:flex;flex-direction:column;max-width:680px;margin:0 auto}
+#sheet .sh{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+#sheet .sh b{font-size:16px;font-weight:800;flex:1}
+#sheet .sc{overflow:auto;padding:14px 16px calc(24px + var(--safe-b));-webkit-overflow-scrolling:touch}
+
+.li{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;padding:13px 13px;margin-bottom:8px}
+.li .nm{font-weight:700} .li .mt{font-size:12px;color:var(--mute)}
+.li .go{margin-left:auto;color:#B9BEC4;font-size:19px}
+.mi{border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-bottom:9px}
+.mi .top{display:flex;align-items:center;gap:8px}
+.gset{display:flex;align-items:center;gap:8px;background:var(--field);border-radius:9px;padding:9px 11px;margin-top:8px;font-weight:700}
+.gset .x{margin-left:auto;color:var(--mute);font-weight:400;font-size:19px}
+
+table.log{width:100%;border-collapse:collapse;font-size:13px}
+table.log td{padding:4px 0;border-bottom:1px solid var(--field)}
+table.log td:last-child{text-align:right;font-weight:700}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(92px + var(--safe-b));z-index:80;
+  background:var(--ink);color:var(--paper);padding:11px 17px;border-radius:99px;font-size:13px;font-weight:700;
+  opacity:0;transition:opacity .2s;pointer-events:none;max-width:88%;text-align:center}
+.toast.on{opacity:1}
+
+/* manual */
+.man h3{font-size:16px;font-weight:800;margin:26px 0 6px;padding-top:4px}
+.man h3:first-child{margin-top:0}
+.man p{margin:6px 0;font-size:14px}
+.man ol{padding-left:1.2em;margin:8px 0}
+.man ol li{margin-bottom:7px;font-size:14px}
+.man .shot{display:block;width:100%;max-width:300px;margin:10px auto;border:1px solid var(--line);border-radius:12px}
+.man .note{background:var(--field);border-radius:10px;padding:11px 12px;font-size:13px;margin:10px 0}
+.man .note b{display:block;margin-bottom:3px}
+.man kbd{background:var(--ink);color:var(--paper);border-radius:5px;padding:1px 6px;font-size:12px;font-weight:700}
+
+/* tour */
+#tour{position:fixed;inset:0;z-index:75;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:24px}
+#tour.on{display:flex}
+#tour .box{background:var(--paper);border-radius:16px;padding:22px 20px;max-width:340px;width:100%}
+#tour h4{margin:0 0 8px;font-size:19px;font-weight:900;letter-spacing:-.02em}
+#tour p{margin:0 0 14px;font-size:14px;color:#333}
+#tour .dots{display:flex;gap:5px;justify-content:center;margin-bottom:14px}
+#tour .dots i{width:7px;height:7px;border-radius:99px;background:var(--line)}
+#tour .dots i.on{background:var(--ink)}
+</style>
+</head>
+<body>
+<header><div class="brand">RACK<em>.</em></div><div class="hdate" id="hdate"></div>
+<button class="btn sm ghost" style="margin-left:auto;padding:6px 11px" data-act="timer">タイマー</button>
+<button class="ver" id="ver" data-act="ver">v0.0</button></header>
+<main id="main"></main>
+
+<div id="tbar">
+  <div class="t num" id="tval">0:00</div>
+  <button data-act="tadj" data-v="-30">−30</button>
+  <button data-act="tadj" data-v="30">+30</button>
+  <div class="grow"></div>
+  <button data-act="tstop">終了</button>
+  <div class="pg" id="tpg"></div>
+</div>
+
+<nav>
+  <button data-tab="today" class="on"><b>今日</b><span>トレーニング</span></button>
+  <button data-tab="build"><b>組む</b><span>メニュー</span></button>
+  <button data-tab="log"><b>記録</b><span>履歴</span></button>
+  <button data-tab="set"><b>設定</b><span>使い方・1RM</span></button>
+</nav>
+
+<div id="focus">
+  <div class="fxtop"><button class="btn sm ghost" data-act="fxclose">閉じる</button><span id="fxProg"></span>
+    <span id="fxTimer" class="num"></span></div>
+  <div class="fxex" id="fxEx"></div>
+  <div class="fxset" id="fxSet"></div>
+  <div class="fxmid">
+    <div class="fxkg num" id="fxKg">—<small>kg</small></div>
+    <div class="plates" id="fxPlates"></div>
+  </div>
+  <div class="fxin">
+    <div class="lb" id="fxKgLb">重量 kg</div>
+    <div class="stp lg"><button data-act="fxn" data-f="kg" data-v="-1">−</button>
+      <input class="grow num" type="number" inputmode="decimal" id="fxKgI"><button data-act="fxn" data-f="kg" data-v="1">＋</button></div>
+    <div class="fxrow2">
+      <div><div class="lb">回数</div><div class="stp lg"><button data-act="fxn" data-f="reps" data-v="-1">−</button>
+        <input class="grow num" type="number" inputmode="numeric" id="fxRepI"><button data-act="fxn" data-f="reps" data-v="1">＋</button></div></div>
+      <div><div class="lb" id="fxRpeLb">RPE</div><div class="stp lg"><button data-act="fxn" data-f="rpe" data-v="-1">−</button>
+        <input class="grow num" type="number" inputmode="decimal" id="fxRpeI"><button data-act="fxn" data-f="rpe" data-v="1">＋</button></div></div>
+    </div>
+  </div>
+  <div class="fxbtn">
+    <button class="btn" data-act="fxskip">スキップ</button>
+    <button class="btn red" id="fxDoneBtn" data-act="fxdone">記録して休憩</button>
+  </div>
+</div>
+
+<div id="sheet"><div class="inner"><div class="sh"><b id="shTtl"></b><button class="btn sm ghost" data-act="shclose">閉じる</button></div><div class="sc" id="shBody"></div></div></div>
+
+<div id="tour"><div class="box">
+  <div class="dots" id="tDots"></div>
+  <h4 id="tH"></h4><p id="tP"></p>
+  <div class="row"><button class="btn ghost grow" data-act="tourskip">とばす</button>
+  <button class="btn fill grow" data-act="tournext" id="tNext">次へ</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const VER='2.5';
+const CHANGES=[['2.5','自重種目（RPEから回数を自動計算・アシスト対応）/ RPEなしでも指定どおりできたら次回+2.5kg / 潰れたら基準を下げる / 夜の練習で日付をまたいでも途中扱いにしない / 周回と通算週の表示 / 休み明けの軽め開始 / 履歴を月ごとに / 記録の修正で日付変更・セット追加 ほか'],
+ ['2.4','推奨重量が勝手に上がり続ける問題を修正 / ダンベル等の重量刻みを種目ごとに / 終了・とばすに確認 / 書き出しを共有シートに / 途中のセッションの扱い / 週ボリュームを暦どおりに ほか'],
+ ['2.3','✓を押しても画面が先頭に戻らないよう修正 / 次にやるセットを赤く表示 / フォーカス中に残り時間を表示'],
+ ['2.2','「前回と同じ」ボタン / 記録の修正 / 週1の自動バックアップと復元 / 週ごとの総ボリューム'],
+ ['2.1','セット完了時にタイマーを自動で開くかどうかを選べるようにした / 右上にバージョンを表示'],
+ ['2.0','起動時は必ず「今日」から / メニュー作成を1行構成に簡略化 / ＋−ボタンで入力 / プランに統合 / iPhone標準タイマー連携 / 画面つきマニュアル'],
+ ['1.0','初版']];
+/* ========== RPEチャート ========== */
+const RPE={
+ 10:[100,95.5,92.2,89.2,86.3,83.7,81.1,78.6,76.2,73.9,70.7,68.0],
+ 9.5:[97.8,94.3,91.1,88.1,85.1,82.4,79.9,77.4,75.1,72.3,69.4,66.7],
+ 9:[95.5,92.2,89.2,86.3,83.7,81.1,78.6,76.2,73.9,70.7,68.0,65.3],
+ 8.5:[94.3,91.1,88.1,85.1,82.4,79.9,77.4,75.1,72.3,69.4,66.7,64.0],
+ 8:[92.2,89.2,86.3,83.7,81.1,78.6,76.2,73.9,70.7,68.0,65.3,62.6],
+ 7.5:[91.1,88.1,85.1,82.4,79.9,77.4,75.1,72.3,69.4,66.7,64.0,61.3],
+ 7:[89.2,86.3,83.7,81.1,78.6,76.2,73.9,70.7,68.0,65.3,62.6,59.9],
+ 6.5:[88.1,85.1,82.4,79.9,77.4,75.1,72.3,69.4,66.7,64.0,61.3,58.6],
+ 6:[86.3,83.7,81.1,78.6,76.2,73.9,70.7,68.0,65.3,62.6,59.9,57.2]};
+function rpePct(reps,rpe){
+  const r=Math.min(12,Math.max(1,Math.round(reps||1)));
+  const ks=Object.keys(RPE).map(Number).sort((a,b)=>a-b);
+  let k=ks[ks.length-1]; for(const x of ks){ if(rpe<=x){k=x;break;} } if(rpe<6)k=6;
+  return RPE[k][r-1];
+}
+const e1rm=(kg,reps,rpe)=>(!kg||!reps)?0:kg/(rpePct(reps,rpe||10)/100);
+/* 逆引き：その回数でこの%ならRPEいくつか（6〜10・0.5刻み、表の範囲外は0） */
+function pctToRpe(reps,pct){
+  const r=Math.min(12,Math.max(1,Math.round(reps||1)))-1;
+  if(!pct||pct<RPE[6][r]-1.5||pct>RPE[10][r]+1.5)return 0;
+  let best=0,diff=1e9;
+  Object.keys(RPE).forEach(k=>{const d=Math.abs(RPE[k][r]-pct);if(d<diff){diff=d;best=+k;}});
+  return best;
+}
+/* 実績セットの推定1RM
+   ① RPEを入力していればそれを使う
+   ② 入力がなければ「アプリが処方した%（tp）」を使う＝処方どおりなら基準は動かない
+   ③ 旧データは目標RPE（t）を使う　④ どれも無ければ推定しない（0） */
+const E1=s=>{
+  const kg=+s.kg||0,reps=+s.reps||0; if(kg<=0||!reps)return 0;
+  if(+s.rpe)return e1rm(kg,reps,+s.rpe);
+  if(+s.tp){ if(!+s.tr||+s.tr===reps)return kg/(+s.tp/100);
+    const r=pctToRpe(+s.tr,+s.tp); return r?e1rm(kg,reps,r):kg/(+s.tp/100); }
+  if(+s.t)return e1rm(kg,reps,+s.t);
+  return 0;
+};
+
+/* ========== 保存 ========== */
+const KEY='rack.v1', uid=()=>Math.random().toString(36).slice(2,9);
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+function bwDefaults(){
+  return [['懸垂',120],['ディップス',120],['アブローラー',90],['腕立て伏せ',90]]
+    .map(([n,r])=>({id:uid(),name:n,big3:false,rest:r,bar:false,bw:true}));
+}
+function defaults(){
+  const mk=(n,big,rest,bar)=>({id:uid(),name:n,big3:!!big,rest:rest||180,bar:bar!==false});
+  const ex=[mk('スクワット',1,240),mk('ベンチプレス',1,240),mk('デッドリフト',1,300),
+    mk('インクラインダンベルプレス',0,120,false),mk('ベントオーバーロウ',0,150),mk('ラットプルダウン',0,120,false),
+    mk('オーバーヘッドプレス',0,150),mk('レッグプレス',0,150,false),mk('ケーブルロウ',0,120,false),
+    mk('トライセプスプレスダウン',0,90,false),mk('フェイスプル',0,90,false),mk('レッグカール',0,90,false)].concat(bwDefaults());
+  return {v:2,settings:{bar:20,round:2.5,rest:180,scName:'レストタイマー',scAfter:'clock',presets:[90,180,300],step:30,autoTimer:true},
+    oneRM:{[ex[0].id]:130,[ex[1].id]:105,[ex[2].id]:160},
+    exercises:ex,menus:[],plans:[],logs:[],active:null,tour:false};
+}
+let S, TAB='today';
+function normalize(){
+  const d=defaults();
+  if(!S||typeof S!=='object')S=d;
+  for(const k of ['exercises','menus','plans','logs']) if(!Array.isArray(S[k]))S[k]=[];
+  if(!S.exercises.length)S.exercises=d.exercises;
+  S.settings=Object.assign({},d.settings,S.settings||{});
+  if(!Array.isArray(S.settings.presets)||S.settings.presets.length!==3)S.settings.presets=[90,180,300];
+  if(!S.oneRM||typeof S.oneRM!=='object')S.oneRM={};
+  if(!S.rmAt||typeof S.rmAt!=='object')S.rmAt={};
+  if(!S.bwMax||typeof S.bwMax!=='object')S.bwMax={};
+  if(!S.bwAt||typeof S.bwAt!=='object')S.bwAt={};
+  if(!S.v3){ const names=S.exercises.map(e=>e.name);
+    bwDefaults().forEach(e=>{ if(!names.includes(e.name))S.exercises.push(e); }); S.v3=1; }
+  S.menus.forEach(m=>{ if(!Array.isArray(m.items))m.items=[]; });
+  S.plans.forEach(p=>{ if(!Array.isArray(p.days))p.days=[]; if(!Array.isArray(p.weeks)||!p.weeks.length)p.weeks=[{label:'—',scale:100}]; });
+  S.logs=S.logs.filter(l=>l&&Array.isArray(l.items)&&l.date);
+  if(S.active&&!Array.isArray(S.active.items))S.active=null;
+}
+function load(){
+  try{ S=JSON.parse(localStorage.getItem(KEY))||defaults(); }catch(e){ S=defaults(); }
+  migrate(); normalize();
+}
+function migrate(){
+  if(!S||S.v===2)return;
+  // v1: routines / programs → plans, menu.items[].sets → groups
+  (S.menus||[]).forEach(m=>m.items.forEach(it=>{
+    if(it.groups)return;
+    it.groups=[]; (it.sets||[]).forEach(s=>{
+      const g=it.groups[it.groups.length-1], key=JSON.stringify([s.mode,s.reps,s.kg,s.pct,s.rpe]);
+      if(g&&g._k===key)g.sets++; else it.groups.push({_k:key,sets:1,mode:s.mode||'rpe',reps:s.reps||5,kg:s.kg||0,pct:s.pct||0,rpe:s.rpe||8});
+    });
+    if(!it.groups.length)it.groups=[{sets:3,mode:'rpe',reps:5,rpe:8}];
+    it.groups.forEach(g=>delete g._k); delete it.sets;
+  }));
+  S.plans=S.plans||[];
+  (S.routines||[]).forEach(r=>S.plans.push({id:r.id,name:r.name,days:r.days||[],
+    weeks:[{label:'—',scale:100,deload:false}],curW:0,curD:r.cursor||0}));
+  (S.programs||[]).forEach(p=>S.plans.push({id:p.id,name:p.name,days:(p.weeks[0]||{days:[]}).days||[],
+    weeks:(p.weeks||[]).map(w=>({label:w.label,scale:w.scale==null?100:w.scale,deload:!!w.deload})),
+    curW:p.curW||0,curD:p.curD||0}));
+  delete S.routines; delete S.programs; S.v=2; save();
+}
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('保存できませんでした');} }
+const EX=id=>S.exercises.find(e=>e.id===id)||{name:'不明な種目',rest:180,bar:true};
+const MENU=id=>S.menus.find(m=>m.id===id);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),1800);}
+const fmt=n=>(Math.round(n*100)/100).toString();
+const stepOf=exId=>{const e=EX(exId);return +e.step||(e.bar?(+S.settings.round||2.5):e.bw?2.5:1);};
+const isBW=exId=>!!EX(exId).bw;
+const loadTxt=kg=>{kg=+kg||0;return kg===0?'自重':kg<0?fmt(-kg)+'kgアシスト':'+'+fmt(kg)+'kg';};
+const setVol=(exId,x)=>isBW(exId)?0:Math.max(0,+x.kg||0)*(+x.reps||0);
+const roundFor=(k,exId)=>{const st=stepOf(exId);return Math.max(0,Math.round(k/st)*st);};
+const roundKg=k=>Math.max(0,Math.round(k/(S.settings.round||2.5))*(S.settings.round||2.5));
+const mmss=s=>Math.floor(s/60)+':'+String(Math.max(0,s%60)).padStart(2,'0');
+function parseTimeText(t){
+  t=String(t||'').replace(/[０-９：]/g,c=>'0123456789:'['０１２３４５６７８９：'.indexOf(c)]);
+  if(t.includes(':')){const[a,b]=t.split(':');return (+a||0)*60+(+b||0);}
+  const n=+t||0; return n<=20?n*60:n;
+}
+
+/* ===== 基準の計算：記録を古い順にたどって更新する =====
+   ・RPEを入れた日          → その日の推定値へ6割寄せる
+   ・RPEなしで全回数できた  → 次回+1刻み（デロード・軽めの日は除く）
+   ・指定の回数に届かなかった → 潰れた重さから推定して6割下げる
+   ・手動で基準を書き換えたら、その時点から数え直す */
+const logTime=l=>+l.ts||new Date(l.date+'T12:00:00').getTime();
+function sessOf(exId,anchor,pred){
+  return S.logs.filter(l=>logTime(l)>=(anchor||0)).sort((a,b)=>logTime(a)-logTime(b))
+    .map(l=>({l,sets:[].concat(...l.items.filter(i=>i.exId===exId).map(i=>i.sets)).filter(x=>(+x.reps||0)>0&&pred(x))}))
+    .filter(x=>x.sets.length);
+}
+const maxOf=a=>a.length?Math.max.apply(null,a):0;
+const minPos=a=>{a=a.filter(v=>v>0);return a.length?Math.min.apply(null,a):0;};
+function baseSrc(exId){
+  if(isBW(exId))return {v:0,from:'none'};
+  let b=+S.oneRM[exId]||0, from=b?'manual':'none';
+  const step=stepOf(exId);
+  sessOf(exId,(S.rmAt||{})[exId],x=>(+x.kg||0)>0).forEach(({l,sets})=>{
+    const best=maxOf(sets.map(E1));
+    if(!b){ if(best){b=best;from='log';} return; }
+    from='log';
+    const failed=sets.filter(x=>+x.tr&&+x.reps<+x.tr&&!(+x.rpe));
+    if(l.dl){ // デロード・軽めの日は、潰れたときだけ下げる
+      if(failed.length){ const e=minPos(failed.map(x=>e1rm(+x.kg,+x.reps,10))); if(e&&e<b)b+=0.6*(e-b); } return; }
+    const rp=sets.filter(x=>+x.rpe>=7), low=sets.filter(x=>+x.rpe>0&&+x.rpe<7);
+    if(rp.length){ const e=maxOf(rp.map(E1)); if(e)b+=0.6*(e-b); return; }
+    if(failed.length){ const e=minPos(failed.map(x=>e1rm(+x.kg,+x.reps,10))); if(e&&e<b)b+=0.6*(e-b); return; }
+    const pres=sets.filter(x=>+x.tp>0);
+    const bump=(pres.length&&l.pk!==0)?step/(maxOf(pres.map(x=>+x.tp))/100):0;
+    // RPE6台の申告は「少なくともこれくらい」として、上げる方向にだけ使う
+    b=Math.max(b+bump, low.length?maxOf(low.map(E1)):0, pres.length?best:0, b);
+  });
+  return {v:b,from:b?from:'none'};
+}
+function baseRM(exId){ return baseSrc(exId).v; }
+/* 自重：負荷ごとに「限界まで何回できるか」を推定 */
+const bwKey=(exId,kg)=>exId+'@'+(+kg||0);
+function bwBase(exId,kg){
+  kg=+kg||0; const k=bwKey(exId,kg);
+  let b=+(S.bwMax||{})[k]||0;
+  const est=x=>(+x.reps)+(10-(+x.rpe||+x.t||10));
+  sessOf(exId,(S.bwAt||{})[k],x=>(+x.kg||0)===kg).forEach(({l,sets})=>{
+    if(!b){ b=maxOf(sets.map(est)); return; }
+    const failed=sets.filter(x=>+x.tr&&+x.reps<+x.tr&&!(+x.rpe));
+    if(l.dl){ if(failed.length){ const e=minPos(failed.map(x=>+x.reps)); if(e&&e<b)b+=0.6*(e-b); } return; }
+    const rp=sets.filter(x=>+x.rpe>=7), low=sets.filter(x=>+x.rpe>0&&+x.rpe<7);
+    if(rp.length){ b+=0.6*(maxOf(rp.map(est))-b); return; }
+    if(failed.length){ const e=minPos(failed.map(x=>+x.reps)); if(e&&e<b)b+=0.6*(e-b); return; }
+    const met=sets.some(x=>+x.tr>0);
+    b=Math.max(b+(met&&l.pk!==0?1:0), low.length?maxOf(low.map(est)):0, met?maxOf(sets.map(est)):0, b);
+  });
+  return b;
+}
+function bwRir(g,scale){ const sc=scale==null?100:scale; return Math.max(0.5,10-(g.rpe||8)-(sc-100)/5); }
+function bwReps(g,exId,scale){ const b=bwBase(exId,g.kg); if(!b)return 0; return Math.max(1,Math.round(b-bwRir(g,scale))); }
+function gTarget(g,exId,scale){
+  const sc=(scale==null?100:scale)/100;
+  if(g.mode==='kg')return g.kg?(sc===1?+g.kg:roundFor(g.kg*sc,exId)):0;
+  const b=baseRM(exId); if(!b)return 0;
+  if(g.mode==='pct')return roundFor(b*(g.pct||0)/100*sc,exId);
+  return roundFor(b*rpePct(g.reps,g.rpe||8)/100*sc,exId);
+}
+/* 週の%で重くしたときの表示：RPE指定なら「今週はRPEいくつ目安か」を出す */
+function goalFor(g,exId,scale){
+  let t=gLabel(g,exId); const sc=scale==null?100:scale;
+  if(isBW(exId)){ if(sc===100||g.mode==='reps')return t;
+    return t+'（今週'+sc+'%・RPE'+fmt(10-bwRir(g,sc))+'目安）'; }
+  if(sc===100)return t;
+  if(g.mode==='rpe'){ const r=pctToRpe(g.reps,rpePct(g.reps,g.rpe||8)*sc/100);
+    return t+'（今週'+sc+'%'+(r?'・RPE'+r+'目安':'')+'）'; }
+  if(g.mode==='pct')return t+'（今週'+fmt((g.pct||0)*sc/100)+'%）';
+  return t+'（今週'+sc+'%）';
+}
+const gLabel=(g,exId)=>(exId&&isBW(exId))?
+  g.sets+'セット × '+(g.mode==='reps'?(g.reps||'?')+'回':'RPE'+(g.rpe||8))+'（'+loadTxt(g.kg)+'）':
+  g.sets+'セット × '+(g.reps||'?')+'回 '+(g.mode==='kg'?(g.kg||0)+'kg':g.mode==='pct'?(g.pct||0)+'%':'RPE'+(g.rpe||8));
+const defGroup=exId=>isBW(exId)?{sets:3,mode:'rpe',rpe:8,kg:0,reps:0}:{sets:3,mode:'rpe',reps:5,rpe:8};
+function lastItem(exId,skipDl){
+  const ls=S.logs.slice().sort((a,b)=>logTime(b)-logTime(a));
+  for(const l of ls){ if(skipDl&&l.dl)continue; const it=l.items.find(x=>x.exId===exId); if(it&&it.sets.length)return {l,it}; }
+  return skipDl?lastItem(exId,false):null;
+}
+function lastSets(exId){ const r=lastItem(exId,true); return r?r.it.sets:null; }
+/* 基準のない種目（補助種目など）：前回の重さ。指定回数を全部こなしていたら+1刻み */
+function nextKg(exId){
+  const r=lastItem(exId,true); if(!r)return 0;
+  const sets=r.it.sets, kg=maxOf(sets.map(x=>+x.kg||0)); if(!kg)return 0;
+  const met=sets.some(x=>+x.tr)&&sets.every(x=>!+x.tr||+x.reps>=+x.tr);
+  const hard=sets.some(x=>+x.rpe>=9.5);
+  return met&&!hard&&!r.l.dl?kg+stepOf(exId):kg;
+}
+function lastLog(exId){
+  const r=lastItem(exId,false); if(!r)return '';
+  const bw=isBW(exId), sets=r.it.sets;
+  const b=sets.reduce((p,c)=>(bw?(+c.reps>+p.reps):(c.kg*c.reps>p.kg*p.reps))?c:p,sets[0]);
+  return r.l.date.slice(5)+' '+(bw?loadTxt(b.kg):fmt(b.kg)+'kg')+'×'+b.reps;
+}
+
+/* ========== 描画 ========== */
+function render(toTop){
+  const y=window.scrollY;
+  $('#hdate').textContent=new Date().toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',weekday:'short'});
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===TAB));
+  $('#main').innerHTML=TAB==='today'?vToday():TAB==='build'?vBuild():TAB==='log'?vLog():vSet();
+  window.scrollTo(0,toTop?0:y);
+  if(TAB==='today'&&S.active)markNext();
+}
+/* ✓を押したときは作り直さず、その場で書き換える（画面が飛ばないように） */
+function markNext(){
+  if(!S.active)return; let found=false;
+  document.querySelectorAll('#main .st').forEach(r=>{
+    const it=S.active.items[+r.dataset.i]; if(!it)return;
+    const st=it.sets[+r.dataset.j]; if(!st)return;
+    const isNext=!st.done&&!found; if(isNext)found=true;
+    r.classList.toggle('next',isNext);
+  });
+}
+function refreshHead(){
+  const a=S.active; if(!a)return;
+  let tot=0,dn=0,vol=0;
+  a.items.forEach(it=>it.sets.forEach(x=>{tot++;if(x.done){dn++;vol+=setVol(it.exId,x);}}));
+  const hero=document.querySelector('#main .card.hero'); if(!hero)return;
+  const sub=hero.querySelector('.sub'), bar=hero.querySelector('.bar i');
+  if(sub)sub.textContent=dn+' / '+tot+' セット　ボリューム '+Math.round(vol)+'kg';
+  if(bar)bar.style.width=(tot?dn/tot*100:0)+'%';
+}
+function planNext(p){
+  const w=p.weeks[p.curW||0]||{scale:100}, d=p.days[p.curD||0];
+  return d?{w,d,menu:MENU(d.menuId)}:null;
+}
+/* 進める週：%が変わるプランでは、一番重い週（デロード以外）を全回数こなせたら次の周で+1刻み */
+function isPeak(p,w){
+  if(p.weeks.length<2)return true;
+  const top=maxOf(p.weeks.filter(x=>!x.deload).map(x=>+x.scale||100));
+  return !w.deload&&(+w.scale||100)>=top;
+}
+function planPos(p){
+  const w=p.weeks[p.curW||0]||{label:''}, c=p.cycle||1, n=(c-1)*p.weeks.length+(p.curW||0)+1;
+  return (c>1?c+'周目・':'')+esc(w.label)+'（通算'+n+'週目）';
+}
+function daysSinceLast(){
+  if(!S.logs.length)return 0;
+  const t=maxOf(S.logs.map(logTime)), d0=new Date(t), d1=new Date();
+  d0.setHours(0,0,0,0); d1.setHours(0,0,0,0);
+  return Math.round((d1-d0)/864e5);
+}
+function vToday(){
+  if(S.active)return vSession();
+  let h='';
+  const broken=S.plans.filter(p=>{const n=planNext(p);return !n||!n.menu;});
+  const nx=S.plans.map(p=>({p,n:planNext(p)})).filter(x=>x.n&&x.n.menu)[0];
+  if(nx){
+    const{p,n}=nx, sc=n.w.deload?Math.min(n.w.scale||100,90):(n.w.scale||100);
+    const gap=daysSinceLast();
+    h+='<div class="card hero"><div class="pad">'+
+      '<div class="sub">'+esc(p.name)+(p.weeks.length>1?'　'+planPos(p):'')+'</div>'+
+      '<div class="ttl" style="font-size:21px;margin-top:2px">'+esc(n.d.label)+'　'+esc(n.menu.name)+'</div>'+
+      '<div class="sub">'+n.menu.items.length+'種目'+(sc!==100?'　重量 '+sc+'%'+(n.w.deload?'（デロード）':''):'')+'</div>'+
+      (gap>=8?'<div style="background:var(--field);border-radius:10px;padding:11px 12px;margin-top:12px">'+
+        '<div style="font-weight:700">前回から'+gap+'日あいています</div>'+
+        '<div class="small mute">いきなり元の重さに戻すと潰れやすいので、どちらかがおすすめです</div>'+
+        '<div class="row wrap" style="margin-top:8px"><button class="btn sm fill" data-act="startlight" data-id="'+p.id+'">軽め（90%）で始める</button>'+
+        (p.weeks.length>1&&((p.curW||0)>0||(p.cycle||1)>1)?'<button class="btn sm" data-act="redoweek" data-id="'+p.id+'">前の週からやり直す</button>':'')+
+        '</div></div>':'')+
+      '<button class="btn red wide big" style="margin-top:14px" data-act="start" data-id="'+p.id+'">この日を始める</button>'+
+      '<div class="row" style="margin-top:8px"><button class="btn ghost sm grow" data-act="pick">別のメニューでやる</button>'+
+      '<button class="btn ghost sm grow" data-act="skipday" data-id="'+p.id+'">この日をとばす</button></div></div></div>';
+  }else if(S.menus.length){
+    h+='<div class="card hero"><div class="pad"><div class="ttl">今日のメニューを選ぶ</div>'+
+      '<div class="sub">プランを作っておくと、次にやる日が自動でここに出ます</div>'+
+      '<button class="btn red wide big" style="margin-top:14px" data-act="pick">メニューを選んで始める</button></div></div>';
+  }else{
+    h+='<div class="card hero"><div class="pad"><div class="ttl">まずメニューを1つ作りましょう</div>'+
+      '<div class="sub">種目とセット数を決めるだけ。1分で終わります</div>'+
+      '<button class="btn red wide big" style="margin-top:14px" data-act="newmenu">メニューを作る</button>'+
+      '<button class="btn ghost wide sm" style="margin-top:8px" data-act="manual">使い方を見る</button></div></div>';
+  }
+  broken.forEach(p=>{ const d=p.days[p.curD||0];
+    h+='<div class="card" style="border-color:var(--red)"><div class="pad"><div style="font-weight:700">プラン「'+esc(p.name)+'」の'+
+      esc(d?d.label:'次の日')+'にメニューが設定されていません</div>'+
+      '<div class="sub">メニューを削除したか、未設定のままです</div>'+
+      '<button class="btn sm" style="margin-top:8px" data-act="editplan" data-id="'+p.id+'">プランを直す</button></div></div>'; });
+  const ex=S.lastExport||0;
+  if(S.logs.length>=3&&Date.now()-ex>30*864e5){
+    h+='<div class="card"><div class="pad"><div style="font-weight:700">'+(ex?'前回の書き出しから30日たちました':'まだ一度も書き出していません')+'</div>'+
+      '<div class="sub">機種変更やデータ削除に備えて、記録をファイルに保存しておきましょう</div>'+
+      '<button class="btn sm" style="margin-top:8px" data-act="export">いま書き出す</button></div></div>';
+  }
+  h+='<h2>直近の記録</h2>'+recent(3);
+  return h;
+}
+/* 日付が変わっても、始めてから6時間以内なら「同じ日の練習」とみなす */
+const isStale=a=>a.date!==todayStr()&&(Date.now()-(+a.ts||0))>6*3600e3;
+function vSession(){
+  const a=S.active; let tot=0,dn=0,vol=0;
+  a.items.forEach(it=>it.sets.forEach(s=>{tot++;if(s.done){dn++;vol+=setVol(it.exId,s);}}));
+  let h='';
+  if(isStale(a)){
+    const d=a.date.slice(5).replace('-','/').replace(/^0/,'');
+    h+='<div class="card" style="border:2px solid var(--red)"><div class="pad">'+
+      '<div class="ttl" style="font-size:15px">'+d+'のセッションが終わっていません</div>'+
+      '<div class="sub">どうするか選んでください</div>'+
+      '<div class="row wrap" style="margin-top:10px">'+
+      '<button class="btn sm fill" data-act="stalefin">'+d+'の記録として終了</button>'+
+      '<button class="btn sm" data-act="staletoday">今日の分として続ける</button>'+
+      '<button class="btn sm ghost" data-act="cancel">破棄</button></div></div></div>';
+  }
+  h+='<div class="card hero"><div class="pad"><div class="ttl">'+esc(a.title)+'</div>'+
+    '<div class="sub">'+dn+' / '+tot+' セット　ボリューム '+Math.round(vol)+'kg</div>'+
+    '<div class="bar"><i style="width:'+(tot?dn/tot*100:0)+'%"></i></div></div></div>';
+  a.items.forEach((it,i)=>{
+    const e=EX(it.exId), lg=lastLog(it.exId), bw=!!e.bw;
+    h+='<div class="card"><div class="exhd"><div class="nm">'+esc(e.name)+'</div>'+
+      '<div class="tag">'+(lg?'前回 '+esc(lg):'')+'</div></div>'+
+      '<div class="goal">目標 '+esc(it.goal||'')+'</div>'+
+      '<div class="sthead"><span></span><span>'+(bw?'負荷 kg（−はアシスト）':'重量 kg')+'</span><span>回数</span><span>完了</span></div><div class="sets">';
+    it.sets.forEach((s,j)=>{
+      h+='<div class="st'+(s.done?' done':'')+'" data-i="'+i+'" data-j="'+j+'">'+
+        '<div class="idx num">'+(j+1)+'</div>'+
+        '<div class="stp"><button data-act="nudge" data-f="kg" data-v="-1">−</button>'+
+        '<input class="grow num" type="number" inputmode="decimal" data-f="kg" value="'+(+s.kg?fmt(+s.kg):'')+'" placeholder="'+(bw?'自重':'—')+'">'+
+        '<button data-act="nudge" data-f="kg" data-v="1">＋</button></div>'+
+        '<div class="stp"><button data-act="nudge" data-f="reps" data-v="-1">−</button>'+
+        '<input class="grow num" type="number" inputmode="numeric" data-f="reps" value="'+(s.reps||'')+'">'+
+        '<button data-act="nudge" data-f="reps" data-v="1">＋</button></div>'+
+        '<button class="chk" data-act="chk">✓</button></div>';
+    });
+    h+='</div><div class="row wrap" style="padding:0 14px 12px">'+
+      (!bw&&!baseRM(it.exId)&&lastSets(it.exId)?'<button class="btn sm" data-act="same" data-i="'+i+'">前回と同じ</button>':'')+
+      '<button class="btn ghost sm" data-act="addset" data-i="'+i+'">セット追加</button>'+
+      '<button class="btn ghost sm" data-act="rmex" data-i="'+i+'">種目を外す</button></div></div>';
+  });
+  h+='<div style="height:60px"></div>'+
+    '<div class="stickybar"><button class="btn red grow big" data-act="focus">フォーカスで進める</button>'+
+    '<button class="btn grow" data-act="finish">終了</button></div>'+
+    '<div class="row" style="margin-top:6px"><button class="btn ghost sm" data-act="addex">種目を追加</button>'+
+    '<button class="btn ghost sm" data-act="cancel">破棄</button></div>';
+  return h;
+}
+function recent(n){
+  const ls=S.logs.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,n);
+  if(!ls.length)return '<div class="empty">まだ記録がありません。</div>';
+  return ls.map(l=>'<div class="li" data-act="openlog" data-id="'+l.id+'"><div><div class="nm">'+esc(l.title)+'</div>'+
+    '<div class="mt">'+l.date+'・'+l.items.length+'種目'+(l.volume?'・'+Math.round(l.volume).toLocaleString()+'kg':'')+(l.dl?'・軽め':'')+'</div></div><div class="go">›</div></div>').join('');
+}
+function vBuild(){
+  let h='<h2>メニュー（1回分の中身）</h2>';
+  h+=S.menus.map(m=>'<div class="li" data-act="editmenu" data-id="'+m.id+'"><div><div class="nm">'+esc(m.name)+'</div>'+
+    '<div class="mt">'+m.items.map(it=>EX(it.exId).name).slice(0,3).join('・')+(m.items.length>3?' ほか':'')+'</div></div><div class="go">›</div></div>').join('');
+  if(!S.menus.length)h+='<div class="empty"><b>メニューがありません</b>種目とセット数を決めたものが1つのメニューです。</div>';
+  h+='<button class="btn wide fill" data-act="newmenu">＋ メニューを作る</button>';
+  h+='<h2>プラン（メニューを回す順番）</h2>';
+  h+=S.plans.map(p=>{const n=planNext(p);
+    return '<div class="li" data-act="editplan" data-id="'+p.id+'"><div><div class="nm">'+esc(p.name)+'</div>'+
+    '<div class="mt">'+p.days.length+'日'+(p.weeks.length>1?'×'+p.weeks.length+'週':'')+
+    (n?'　次: '+esc(n.d.label):'')+'</div></div><div class="go">›</div></div>'}).join('');
+  if(!S.plans.length)h+='<div class="empty">A/B/Cを順番に回したり、週ごとに重量を変えたいときに作ります。<br>1メニューだけなら無くても使えます。</div>';
+  h+='<button class="btn wide" data-act="newplan">＋ プランを作る</button>';
+  return h;
+}
+function vLog(){
+  const ids=[...new Set(S.logs.flatMap(l=>l.items.map(i=>i.exId)))];
+  let h='';
+  if(ids.length){
+    const sel=ids.includes(S.chartEx)?S.chartEx:ids[0];
+    h+='<h2>種目ごとの推移</h2><div class="chips">'+ids.map(id=>'<button class="chip'+(id===sel?' on':'')+'" data-act="chart" data-id="'+id+'">'+esc(EX(id).name)+'</button>').join('')+'</div>'+
+      '<div class="card"><div class="pad">'+chart(sel)+'</div></div>';
+  }
+  h+='<h2>週ごとのボリューム</h2>'+(volChart()||'<div class="empty">記録が増えるとここに出ます。</div>');
+  h+='<h2>履歴</h2>'+history();
+  return h;
+}
+function history(){
+  const ls=S.logs.slice().sort((a,b)=>logTime(b)-logTime(a));
+  if(!ls.length)return '<div class="empty">まだ記録がありません。</div>';
+  const g={}; const order=[];
+  ls.forEach(l=>{ const k=l.date.slice(0,7); if(!g[k]){g[k]=[];order.push(k);} g[k].push(l); });
+  return order.map(k=>{ const [y,m]=k.split('-');
+    return '<div class="row" style="margin:16px 0 6px"><b>'+y+'年'+(+m)+'月</b><span class="small mute">'+g[k].length+'回</span></div>'+
+      g[k].map(l=>'<div class="li" data-act="openlog" data-id="'+l.id+'"><div><div class="nm">'+esc(l.title)+'</div>'+
+      '<div class="mt">'+(+l.date.slice(5,7))+'/'+(+l.date.slice(8))+'・'+l.items.length+'種目'+(l.volume?'・'+Math.round(l.volume).toLocaleString()+'kg':'')+(l.dl?'・軽め':'')+'</div></div><div class="go">›</div></div>').join(''); }).join('');
+}
+function weekStart(dstr){
+  const d=new Date(dstr+'T00:00:00'); const w=(d.getDay()+6)%7; d.setDate(d.getDate()-w);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function volChart(){
+  const m={};
+  S.logs.forEach(l=>{ const k=weekStart(l.date); m[k]=(m[k]||0)+(l.volume||0); });
+  if(!Object.keys(m).length)return '';
+  const ks=[]; const cur=new Date(weekStart(todayStr())+'T00:00:00');
+  for(let i=11;i>=0;i--){ const d=new Date(cur); d.setDate(d.getDate()-7*i);
+    ks.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')); }
+  ks.forEach(k=>{ if(!(k in m))m[k]=0; });
+  const vs=ks.map(k=>m[k]), mx=Math.max.apply(null,vs)||1;
+  const W=320,H=120,P=16,bw=(W-P*2)/ks.length*0.62, gap=(W-P*2)/ks.length;
+  const bars=ks.map((k,i)=>{ const h=(vs[i]/mx)*(H-30);
+    return '<rect x="'+(P+i*gap+(gap-bw)/2).toFixed(1)+'" y="'+(H-14-h).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" fill="#D50032" rx="2"/>'; }).join('');
+  const labs=ks.map((k,i)=>'<text x="'+(P+i*gap+gap/2).toFixed(1)+'" y="'+(H-3)+'" font-size="7" fill="#666B72" text-anchor="middle">'+(+k.slice(5,7))+'/'+(+k.slice(8))+'</text>').join('');
+  const now=vs[vs.length-1], prev=vs[vs.length-2]||0;
+  return '<div class="card"><div class="pad">'+
+    (now?'<div class="row" style="align-items:baseline;gap:8px"><div class="num" style="font-size:26px;font-weight:900;letter-spacing:-.04em">'+
+    Math.round(now).toLocaleString()+'<span style="font-size:13px"> kg</span></div>'+
+    '<div class="small mute">今週の総ボリューム　先週 '+Math.round(prev).toLocaleString()+'kg'+
+    (prev?'（'+(now>=prev?'+':'')+Math.round((now/prev-1)*100)+'%）':'')+'</div></div>':
+    '<div class="row" style="align-items:baseline;gap:8px"><div style="font-size:17px;font-weight:800">今週はまだ記録なし</div>'+
+    '<div class="small mute">先週 '+Math.round(prev).toLocaleString()+'kg</div></div>')+
+    '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;margin-top:6px">'+bars+labs+'</svg>'+
+    '<div class="small mute">直近12週の総挙上量（重量×回数の合計。自重種目は含みません）</div></div></div>';
+}
+function chart(exId){
+  if(isBW(exId))return chartBW(exId);
+  const pts=[];
+  S.logs.slice().sort((a,b)=>a.date.localeCompare(b.date)).forEach(l=>{
+    let b=0; l.items.filter(i=>i.exId===exId).forEach(i=>i.sets.forEach(s=>{if(s.kg&&s.reps)b=Math.max(b,E1(s));}));
+    if(b)pts.push({d:l.date,v:b});
+  });
+  if(!pts.length)return '<div class="mute small">この種目の記録はまだありません。</div>';
+  const W=320,H=130,P=22, vs=pts.map(p=>p.v), mn=Math.min(...vs)*.96, mx=Math.max(...vs)*1.04, rg=(mx-mn)||1;
+  const tt=pts.map(p=>new Date(p.d+'T00:00:00').getTime()), t0=tt[0], tr=(tt[tt.length-1]-t0)||1;
+  const X=i=>pts.length===1?W/2:P+(tt[i]-t0)/tr*(W-P*2), Y=v=>H-P-(v-mn)/rg*(H-P*2);
+  const line=pts.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' ');
+  const f=pts[0],l=pts[pts.length-1];
+  return '<div class="row" style="align-items:baseline;gap:8px"><div class="num" style="font-size:31px;font-weight:900;letter-spacing:-.04em">'+
+    fmt(Math.round(l.v*10)/10)+'<span style="font-size:14px"> kg</span></div><div class="small mute">推定1RM'+
+    (pts.length>1?'　'+(l.v>=f.v?'+':'')+fmt(Math.round((l.v-f.v)*10)/10)+'kg':'')+'</div></div>'+
+    '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto" preserveAspectRatio="none">'+
+    '<path d="'+line+'" fill="none" stroke="#000" stroke-width="2"/>'+
+    pts.map((p,i)=>'<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(p.v).toFixed(1)+'" r="3" fill="#D50032"/>').join('')+'</svg>'+
+    '<div class="row small mute"><span>'+f.d.slice(5)+'</span><div class="grow"></div><span>'+l.d.slice(5)+'</span></div>';
+}
+function chartBW(exId){
+  const r=lastItem(exId,false); if(!r)return '<div class="mute small">この種目の記録はまだありません。</div>';
+  const load=+r.it.sets[r.it.sets.length-1].kg||0, pts=[];
+  S.logs.slice().sort((a,b)=>logTime(a)-logTime(b)).forEach(l=>{
+    let b=0; l.items.filter(i=>i.exId===exId).forEach(i=>i.sets.forEach(x=>{ if((+x.kg||0)===load&&+x.reps)b=Math.max(b,+x.reps+(10-(+x.rpe||+x.t||10))); }));
+    if(b)pts.push({d:l.date,v:b});
+  });
+  if(!pts.length)return '<div class="mute small">この種目の記録はまだありません。</div>';
+  const W=320,H=130,P=22, vs=pts.map(p=>p.v), mn=Math.max(0,Math.min(...vs)-1), mx=Math.max(...vs)+1, rg=(mx-mn)||1;
+  const tt=pts.map(p=>new Date(p.d+'T00:00:00').getTime()), t0=tt[0], tr=(tt[tt.length-1]-t0)||1;
+  const X=i=>pts.length===1?W/2:P+(tt[i]-t0)/tr*(W-P*2), Y=v=>H-P-(v-mn)/rg*(H-P*2);
+  const f=pts[0],l=pts[pts.length-1], now=Math.round(bwBase(exId,load)*10)/10;
+  return '<div class="row" style="align-items:baseline;gap:8px"><div class="num" style="font-size:31px;font-weight:900;letter-spacing:-.04em">'+
+    fmt(now||l.v)+'<span style="font-size:14px"> 回</span></div><div class="small mute">推定最大回数（'+loadTxt(load)+'）'+
+    (pts.length>1?'　'+(l.v>=f.v?'+':'')+fmt(Math.round((l.v-f.v)*10)/10)+'回':'')+'</div></div>'+
+    '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto" preserveAspectRatio="none">'+
+    '<path d="'+pts.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' ')+'" fill="none" stroke="#000" stroke-width="2"/>'+
+    pts.map((p,i)=>'<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(p.v).toFixed(1)+'" r="3" fill="#D50032"/>').join('')+'</svg>'+
+    '<div class="row small mute"><span>'+f.d.slice(5)+'</span><div class="grow"></div><span>'+l.d.slice(5)+'</span></div>';
+}
+function vSet(){
+  const s=S.settings;
+  let h='<div class="card hero"><div class="pad"><div class="ttl">使い方マニュアル</div>'+
+    '<div class="sub">実際の画面つきで全機能を説明しています</div>'+
+    '<button class="btn fill wide" style="margin-top:12px" data-act="manual">マニュアルを開く</button></div></div>';
+
+  h+='<h2>レストタイマー（iPhoneの時計アプリ）</h2><div class="card"><div class="pad">'+
+    '<div class="small mute">ショートカットに秒数を渡して、iPhone標準のタイマーを鳴らします。音楽を止めずに鳴らせるのが利点です。</div>'+
+    '<button class="btn wide" style="margin-top:10px" data-act="manual" data-sec="timer">設定手順を見る</button>'+
+    '<label class="f">ショートカット名（完全一致）</label><input type="text" data-cfg="scName" value="'+esc(s.scName)+'">'+
+    '<label class="f">実行したあと</label><select data-cfg="scAfter">'+
+    [['clock','時計アプリを開く'],['back','このアプリに戻る'],['none','何もしない']].map(o=>'<option value="'+o[0]+'"'+(s.scAfter===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>'+
+    '<label class="f">プリセット（3つ・「3」「3:00」「180」どれでも可）</label><div class="row">'+
+    s.presets.map((p,i)=>'<input type="text" class="num" style="text-align:center" data-preset="'+i+'" value="'+mmss(p)+'">').join('')+'</div>'+
+    '<label class="f">セット完了で自動的にタイマーを開始</label><select data-cfg="autoTimer">'+
+    [['1','する'],['0','しない']].map(o=>'<option value="'+o[0]+'"'+((s.autoTimer!==false)===(o[0]==='1')?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>'+
+    '<label class="f">＋−ボタンの刻み</label><select data-cfg="step">'+[10,15,30,60].map(v=>'<option value="'+v+'"'+(s.step==v?' selected':'')+'>'+v+'秒</option>').join('')+'</select>'+
+    '<button class="btn wide" style="margin-top:12px" data-act="testsc">ショートカットを試す</button></div></div>';
+
+  h+='<h2>基準1RM</h2><div class="card"><div class="pad">'+
+    '<div class="small mute">推奨重量はこの基準から計算します。記録をつけるたびに自動で更新されます。'+
+    '<b style="color:var(--ink)">書き換えると（確認のあと）その値から数え直します。</b></div>';
+  S.exercises.filter(e=>e.big3&&!e.bw).forEach(e=>{
+    const src=baseSrc(e.id);
+    h+='<label class="f">'+esc(e.name)+'</label><input type="number" inputmode="decimal" step="2.5" data-rm="'+e.id+'" value="'+(S.oneRM[e.id]||'')+'">'+
+      '<div class="small mute" data-rmsrc="'+e.id+'" style="margin-top:4px">いまの基準：'+(src.v?fmt(Math.round(src.v*10)/10)+'kg（'+(src.from==='log'?'記録から計算':'この値')+'）':'未設定')+'</div>'; });
+  h+='<button class="btn sm ghost" style="margin-top:10px" data-act="rmall">BIG3以外も入力する</button></div></div>';
+
+  h+='<h2>重量の丸めとバー</h2><div class="card"><div class="pad">'+
+    '<label class="f">バーの重さ kg</label><input type="number" step="0.5" data-cfg="bar" value="'+s.bar+'">'+
+    '<label class="f">推奨重量の丸め</label><select data-cfg="round">'+[1.25,2.5,5].map(v=>'<option value="'+v+'"'+(s.round==v?' selected':'')+'>'+v+'kg</option>').join('')+'</select>'+
+    '<label class="f">既定の休憩 秒</label><input type="number" data-cfg="rest" value="'+s.rest+'"></div></div>';
+
+  h+='<h2>種目マスタ</h2>'+S.exercises.map(e=>'<div class="li" data-act="editex" data-id="'+e.id+'"><div><div class="nm">'+esc(e.name)+'</div>'+
+    '<div class="mt">休憩'+e.rest+'秒'+(e.bw?'・自重':'')+(e.bar?'・バーベル':'')+(e.big3?'・BIG3':'')+'</div></div><div class="go">›</div></div>').join('')+
+    '<button class="btn wide" data-act="newex">＋ 種目を追加</button>';
+
+  h+='<h2>データ</h2><div class="card"><div class="pad"><div class="row wrap">'+
+    '<button class="btn sm" data-act="export">書き出す</button><button class="btn sm" data-act="import">読み込む</button>'+
+    '<button class="btn sm ghost" data-act="wipe">全部消す</button></div>'+
+    '<button class="btn wide" style="margin-top:10px" data-act="backups">自動バックアップから復元</button>'+
+    '<div class="small mute" style="margin-top:8px">記録はこの端末の中だけに保存されます。月に一度は書き出しておくと安心です。'+
+    (S.lastExport?'<br>前回の書き出し：'+new Date(S.lastExport).toLocaleDateString('ja-JP'):'<br>まだ書き出していません')+'</div></div></div>'+
+    '<div class="small mute" style="text-align:center;margin:20px 0">RACK v'+VER+'</div>';
+  return h;
+}
+
+/* ========== セッション ========== */
+function startSession(menuObj,scale,title,src,opt){
+  opt=opt||{}; const sc=scale==null?100:scale;
+  const items=menuObj.items.map(it=>{
+    const sets=[], notes=[];
+    if(isBW(it.exId)){
+      (it.groups||[]).forEach(g=>{
+        const load=+g.kg||0; let reps,trpe='';
+        if(g.mode==='reps'){ reps=+g.reps||''; }
+        else { reps=bwReps(g,it.exId,sc)||''; trpe=fmt(10-bwRir(g,sc));
+          if(!reps)notes.push('最大回数が未設定です。メニュー編集で入れると回数が出ます'); }
+        for(let n=0;n<(g.sets||1);n++) sets.push({kg:load,reps:reps,rpe:'',trpe:trpe,tp:0,tr:+reps||0,done:false});
+      });
+    }else{
+      const b=baseRM(it.exId);
+      (it.groups||[]).forEach(g=>{
+        let tk=gTarget(g,it.exId,sc);
+        if(tk&&b&&(g.reps||1)>=2&&(g.mode==='rpe'||(g.mode==='pct'&&sc>100))){
+          let lim=roundFor(b*rpePct(g.reps,9.5)/100,it.exId);
+          if(g.mode==='pct')lim=Math.max(lim,roundFor(b*(g.pct||0)/100,it.exId));
+          if(tk>lim){ tk=lim; notes.push('重すぎるためRPE9.5相当に抑えています'); } }
+        if(!tk&&g.mode!=='kg')tk=nextKg(it.exId);
+        const tp=(b&&tk)?tk/b*100:0;
+        const trpe=(g.mode==='rpe'&&sc===100&&tp)?(g.rpe||8):pctToRpe(g.reps,tp);
+        for(let n=0;n<(g.sets||1);n++) sets.push({kg:tk||'',reps:g.reps||'',rpe:'',trpe:trpe||'',tp:tp,tr:g.reps||0,done:false});
+      });
+    }
+    return {exId:it.exId,rest:it.rest||EX(it.exId).rest||S.settings.rest,
+      goal:(it.groups||[]).map(g=>goalFor(g,it.exId,sc)).join(' / ')+(notes.length?'　⚠'+notes[0]:''),sets:sets};
+  });
+  S.active={date:todayStr(),ts:Date.now(),title:title,source:src||null,dl:!!opt.dl,pk:opt.pk===false?0:1,items:items};
+  save();render(true);
+}
+function finish(opt){
+  opt=opt||{}; const a=S.active;
+  const items=a.items.map(it=>({exId:it.exId,name:EX(it.exId).name,
+    sets:it.sets.filter(s=>s.done).map(s=>({kg:+s.kg||0,reps:+s.reps||0,rpe:+s.rpe||0,t:+s.trpe||0,tp:+s.tp||0,tr:+s.tr||0}))})).filter(i=>i.sets.length);
+  if(!items.length){ if(!confirm('完了したセットがありません。このセッションを破棄しますか？'))return; S.active=null;save();render(true);return; }
+  const left=a.items.reduce((n,it)=>n+it.sets.filter(x=>!x.done).length,0);
+  if(left&&!confirm('まだ'+left+'セット残っています。\nここで終了して、終わった分だけ記録しますか？'))return;
+  let vol=0; items.forEach(i=>i.sets.forEach(s=>vol+=setVol(i.exId,s)));
+  S.logs.push({id:uid(),date:a.date,ts:+a.ts||Date.now(),title:a.title,items:items,volume:vol,dl:a.dl?1:0,pk:a.pk===0?0:1});
+  if(a.source){ const p=S.plans.find(x=>x.id===a.source); if(p)advance(p); }
+  S.active=null;save();autoBackup();TAB=opt.stay?'today':'log';render(true);toast('記録しました');
+}
+function advance(p){
+  let d=(p.curD||0)+1, w=p.curW||0;
+  if(d>=p.days.length){ d=0; w=w+1; if(w>=p.weeks.length){ w=0; p.cycle=(p.cycle||1)+1; } }
+  p.curD=d;p.curW=w;save();
+}
+
+/* ========== タイマー（ショートカット） ========== */
+let T={end:0,total:0,h:null};
+function runShortcut(sec){
+  const name=(S.settings.scName||'レストタイマー').trim();
+  let url='shortcuts://x-callback-url/run-shortcut?name='+encodeURIComponent(name)+'&input=text&text='+sec;
+  if(S.settings.scAfter==='clock')     url+='&x-success='+encodeURIComponent('clock-timer://');
+  else if(S.settings.scAfter==='back') url+='&x-success='+encodeURIComponent(location.href);
+  try{ window.location.href=url; }catch(e){ toast('ショートカットを起動できませんでした'); }
+}
+const autoOn=()=>S.settings.autoTimer!==false;
+let lastAuto=0;
+const allDone=()=>!!S.active&&S.active.items.every(it=>it.sets.every(x=>x.done));
+function autoRest(sec){
+  if(!autoOn()||allDone())return;               // 最後のセットでは休憩不要
+  if(Date.now()-lastAuto<20000)return;         // 20秒以内の連続✓はまとめ入力とみなす
+  lastAuto=Date.now(); startRest(sec);
+}
+function startRest(sec){
+  sec=Math.max(5,Math.round(sec||S.settings.rest));
+  runShortcut(sec);
+  T.end=Date.now()+sec*1000;T.total=sec;$('#tbar').classList.add('on');document.body.classList.add('tmr');
+  clearInterval(T.h);T.h=setInterval(tick,250);tick();
+}
+function stopRest(){clearInterval(T.h);T.h=null;$('#tbar').classList.remove('on');document.body.classList.remove('tmr');
+  const ft=$('#fxTimer'); if(ft)ft.textContent='';}
+function tick(){
+  const left=Math.max(0,Math.round((T.end-Date.now())/1000));
+  $('#tval').textContent=mmss(left);
+  const ft=$('#fxTimer'); if(ft)ft.textContent=left>0?('休憩 '+mmss(left)):'';
+  $('#tpg').style.width=(T.total?(1-left/T.total)*100:0)+'%';
+  if(left<=0){ clearInterval(T.h);T.h=null; setTimeout(stopRest,4000); }
+}
+
+/* タイマーパネル（スクマニと同じ操作系） */
+let TB=0;
+function timerPanel(){
+  if(!TB)TB=S.settings.presets[1]||180;
+  const st=S.settings.step||30;
+  const h='<div class="chips" style="justify-content:space-between;margin-bottom:14px">'+
+    S.settings.presets.map(v=>'<button class="chip'+(v===TB?' on':'')+'" data-act="tpre" data-v="'+v+'" style="flex:1;text-align:center">'+mmss(v)+'</button>').join('')+'</div>'+
+    '<div class="stp lg"><button data-act="tbn" data-v="-1">−</button>'+
+    '<div class="grow num" style="text-align:center;font-size:36px;font-weight:900;letter-spacing:-.04em">'+mmss(TB)+'</div>'+
+    '<button data-act="tbn" data-v="1">＋</button></div>'+
+    '<div class="small mute" style="text-align:center;margin-top:6px">＋−は'+st+'秒きざみ</div>'+
+    '<button class="btn red wide big" style="margin-top:14px" data-act="tgo">'+(T.h?'停止する':'この秒数で開始')+'</button>'+
+    '<div class="row" style="margin-top:14px;align-items:flex-start">'+
+      '<div class="grow"><div style="font-weight:700">セット完了で自動的に開始</div>'+
+      '<div class="small mute">オフにすると、✓を押してもタイマーは動きません</div></div>'+
+      '<button class="btn sm '+(autoOn()?'fill':'ghost')+'" data-act="autotgl">'+(autoOn()?'オン':'オフ')+'</button></div>'+
+      '<div class="small mute" style="margin-top:12px">開始するとiPhoneのショートカットが動き、時計アプリのタイマーが鳴ります。</div>';
+  sheet('レストタイマー',h,null,true);
+}
+
+/* ========== フォーカス ========== */
+let FX={i:0,j:0};
+function openFocus(){
+  const p=next(0,-1); if(!p){toast('全セット完了しています');return;}
+  FX=p;$('#focus').classList.add('on');drawFX();
+}
+function next(i,j){
+  const a=S.active;
+  for(let x=i;x<a.items.length;x++)for(let y=(x===i?j+1:0);y<a.items[x].sets.length;y++) if(!a.items[x].sets[y].done)return{i:x,j:y};
+  return null;
+}
+function drawFX(){
+  const a=S.active,it=a.items[FX.i],s=it.sets[FX.j],e=EX(it.exId);
+  let n=0,d=0;a.items.forEach(x=>x.sets.forEach(y=>{n++;if(y.done)d++;}));
+  $('#fxProg').textContent=a.title+'　'+d+'/'+n;
+  $('#fxEx').textContent=e.name;
+  $('#fxSet').textContent='セット '+(FX.j+1)+' / '+it.sets.length+(it.goal?'　'+it.goal:'');
+  const bw=isBW(it.exId); FX.rt=!!+s.rpe;
+  $('#fxKgI').value=+s.kg?fmt(+s.kg):''; $('#fxKgI').placeholder=bw?'自重':'';
+  $('#fxKgLb').textContent=bw?'負荷 kg（−はアシスト）':'重量 kg';
+  $('#fxRepI').value=s.reps||''; $('#fxRpeI').value=s.rpe||s.trpe||'';
+  $('#fxRpeLb').textContent=+s.trpe?'RPE（目安'+s.trpe+'・変えた時だけ記録）':'RPE';
+  $('#fxDoneBtn').textContent=autoOn()?'記録して休憩':'記録して次へ';
+  paintFX();
+}
+function paintFX(){
+  const kg=+$('#fxKgI').value||0, it=S.active.items[FX.i];
+  if(isBW(it.exId)){
+    const r=+$('#fxRepI').value||0;
+    $('#fxKg').innerHTML=(r||'—')+'<small>回</small>';
+    $('#fxPlates').innerHTML='<span class="txt" style="margin-left:0;font-size:15px;font-weight:700;color:var(--ink)">'+loadTxt(kg)+'</span>';
+    return;
+  }
+  $('#fxKg').innerHTML=(kg?fmt(kg):'—')+'<small>kg</small>';
+  $('#fxPlates').innerHTML=EX(it.exId).bar?plates(kg):'';
+}
+const PL=[[25,'#D50032'],[20,'#0047AB'],[15,'#F2C200'],[10,'#00863F'],[5,'#FFFFFF'],[2.5,'#111'],[1.25,'#B9BEC4']];
+function plates(kg){
+  const bar=S.settings.bar||20;
+  if(!kg||kg<=bar)return '<div class="barline"></div><span class="txt">バーのみ</span>';
+  let per=(kg-bar)/2,list=[];
+  PL.forEach(([w,c])=>{ while(per>=w-0.001){per-=w;list.push([w,c]);} });
+  return '<div class="barline"></div>'+list.map(([w,c])=>'<div class="plate" style="height:'+(26+w*.7)+'px;background:'+c+'"></div>').join('')+
+    '<span class="txt">片側 '+list.map(x=>x[0]).join('+')+(per>.01?'（+'+fmt(per)+'余り）':'')+'</span>';
+}
+function fxDone(skip){
+  const it=S.active.items[FX.i],s=it.sets[FX.j];
+  if(!skip){
+    s.kg=+$('#fxKgI').value||0;s.reps=+$('#fxRepI').value||0;s.rpe=FX.rt?(+$('#fxRpeI').value||''):'';
+    s.done=true;save();autoRest(it.rest);
+  }
+  const nx=next(FX.i,FX.j);
+  if(!nx){$('#focus').classList.remove('on');render();toast('全セット完了');return;}
+  FX=nx;drawFX();
+}
+
+/* ========== シート ========== */
+function sheet(t,html,after,keep){
+  const b=$('#shBody'), y=b.scrollTop;
+  $('#shTtl').textContent=t; b.innerHTML=html; $('#sheet').classList.add('on');
+  b.scrollTop=(typeof keep==='number')?keep:(keep?y:0); if(after)after();
+}
+function closeSheet(){$('#sheet').classList.remove('on');$('#shBody').innerHTML='';}
+
+/* ---- メニュー編集 ---- */
+let ED=null;
+function editMenu(id){
+  ED=id?JSON.parse(JSON.stringify(MENU(id))):{id:uid(),name:'',items:[],_new:true};
+  drawMenu();
+}
+function drawMenu(keep){
+  let h='<label class="f">メニュー名</label><input type="text" data-ed="name" value="'+esc(ED.name)+'" placeholder="例）スクワットの日">';
+  h+='<h2>種目</h2>';
+  ED.items.forEach((it,i)=>{
+    const e=EX(it.exId);
+    h+='<div class="mi"><div class="top"><div class="nm" style="font-weight:800">'+esc(e.name)+'</div>'+
+      '<button class="btn sm ghost" style="margin-left:auto" data-ed="rmex" data-i="'+i+'">外す</button></div>';
+    it.groups.forEach((g,j)=>{
+      h+='<div class="gset" data-i="'+i+'" data-j="'+j+'"><span data-ed="editg">'+esc(gLabel(g,it.exId))+'</span>'+
+        '<button class="x" data-ed="rmg">×</button></div>';
+    });
+    h+='<div class="row" style="margin-top:8px"><button class="btn sm ghost" data-ed="addg" data-i="'+i+'">＋セット構成</button>'+
+      '<div class="grow"></div><span class="small mute">休憩 '+(it.rest||e.rest)+'秒</span>'+
+      '<button class="btn sm ghost" data-ed="rest" data-i="'+i+'">変更</button></div></div>';
+  });
+  if(!ED.items.length)h+='<div class="empty">まだ種目がありません。</div>';
+  h+='<button class="btn wide" data-ed="addex">＋ 種目を追加</button>'+
+    '<button class="btn wide fill" style="margin-top:10px" data-ed="save">保存する</button>'+
+    (ED._new?'':'<button class="btn wide ghost" style="margin-top:8px" data-ed="del">このメニューを削除</button>');
+  sheet(ED._new?'メニューを作る':'メニューを編集',h,null,keep);
+}
+function editGroup(i,j){
+  const it=ED.items[i], bw=isBW(it.exId);
+  const g=j==null?defGroup(it.exId):JSON.parse(JSON.stringify(it.groups[j]));
+  if(bw&&g.mode!=='reps')g.mode='rpe';
+  const num=(f,v,st)=>'<div class="stp"><button data-g="n" data-f="'+f+'" data-v="-1">−</button>'+
+    '<input class="grow num" type="number" inputmode="decimal" data-g="v" data-f="'+f+'" value="'+v+'" step="'+(st||1)+'">'+
+    '<button data-g="n" data-f="'+f+'" data-v="1">＋</button></div>';
+  const bodyBW=()=>{
+    const b=bwBase(it.exId,g.kg);
+    const typed=ED._g&&ED._g.max!=null&&ED._g.max!==''?+ED._g.max:null, bb=typed!=null?typed:b;
+    const reps=g.mode==='reps'?(+g.reps||0):(bb?Math.max(1,Math.round(bb-bwRir(g,100))):0);
+    const mx=ED._g&&ED._g.max!=null?ED._g.max:(b?Math.round(b):'');
+    return '<label class="f">セット数</label>'+num('sets',g.sets)+
+    '<label class="f">回数の決め方</label><div class="chips" style="margin-bottom:4px">'+
+    [['rpe','RPEで回数を決める'],['reps','回数を直接']].map(o=>
+      '<button class="chip'+(g.mode===o[0]?' on':'')+'" data-g="mode" data-v="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>'+
+    (g.mode==='rpe'?'<label class="f">RPE（8＝あと2回できるところで止める）</label>'+num('rpe',g.rpe||8,0.5):
+      '<label class="f">1セットの回数</label>'+num('reps',g.reps||10))+
+    '<label class="f">負荷 kg（0＝自重、マイナス＝アシスト、プラス＝加重）</label>'+num('kg',+g.kg||0,stepOf(it.exId))+
+    '<label class="f">この負荷で、いま限界まで何回できる？</label>'+
+    '<input type="number" inputmode="numeric" data-g="max" value="'+mx+'" placeholder="例）12">'+
+    '<div class="small mute" style="margin-top:4px">記録がたまると自動で更新されます。'+(b?'いまの推定：最大'+fmt(Math.round(b*10)/10)+'回':'まだ記録がありません')+'</div>'+
+    '<div class="note" style="background:var(--field);border-radius:10px;padding:11px;margin-top:14px;font-size:13px">'+
+    esc(gLabel(g,it.exId))+'　→　今日は '+(reps?reps+'回':'—（最大回数を入れてください）')+'</div>'+
+    '<button class="btn wide fill" style="margin-top:12px" data-g="ok">この構成にする</button>';
+  };
+  const body=()=>bw?bodyBW():'<label class="f">セット数</label>'+num('sets',g.sets)+
+    '<label class="f">1セットの回数</label>'+num('reps',g.reps)+
+    '<label class="f">重量の決め方</label><div class="chips" style="margin-bottom:4px">'+
+    [['rpe','RPEで決める'],['pct','%1RMで決める'],['kg','重量を直接']].map(o=>
+      '<button class="chip'+(g.mode===o[0]?' on':'')+'" data-g="mode" data-v="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>'+
+    (g.mode==='rpe'?'<label class="f">RPE（きつさ。8＝あと2回できる）</label>'+num('rpe',g.rpe||8,0.5):
+     g.mode==='pct'?'<label class="f">1RMに対する割合 %</label>'+num('pct',g.pct||80,2.5):
+     '<label class="f">重量 kg</label>'+num('kg',g.kg||0,2.5))+
+    '<div class="note" style="background:var(--field);border-radius:10px;padding:11px;margin-top:14px;font-size:13px">'+
+    esc(gLabel(g,it.exId))+'　→　今日の推奨 '+(gTarget(g,it.exId,100)||nextKg(it.exId)||'—')+'kg</div>'+
+    '<button class="btn wide fill" style="margin-top:12px" data-g="ok">この構成にする</button>';
+  let first=true;
+  const open=()=>{ sheet(EX(it.exId).name,body(),null,!first); first=false; };
+  ED._g={i:i,j:j,g:g,redraw:open,max:null}; open();
+}
+function pickEx(cb,multi){
+  let sel=[];
+  const draw=()=>{
+    const q=($('#exq')&&$('#exq').value||'').trim();
+    $('#exlist').innerHTML=S.exercises.filter(e=>!q||e.name.includes(q)).map(e=>
+      '<div class="li" data-px="'+e.id+'" style="'+(sel.includes(e.id)?'border-color:#000;border-width:2px':'')+'">'+
+      '<div class="nm">'+esc(e.name)+'</div><div class="go">'+(sel.includes(e.id)?'✓':'＋')+'</div></div>').join('')||
+      '<div class="empty">見つかりません。下のボタンで追加できます。</div>';
+  };
+  sheet('種目を選ぶ','<input type="text" id="exq" placeholder="種目名で検索" autocomplete="off">'+
+    '<div id="exlist" style="margin-top:10px"></div>'+
+    '<button class="btn wide ghost" id="exnew">入力した名前で新しい種目を作る</button>'+
+    (multi?'<button class="btn wide fill" style="margin-top:8px" id="exok">選んだ種目を追加</button>':''),()=>{
+    draw();
+    $('#exq').oninput=draw;
+    $('#exlist').onclick=ev=>{ const t=ev.target.closest('[data-px]'); if(!t)return;
+      if(multi){ const id=t.dataset.px; sel.includes(id)?sel=sel.filter(x=>x!==id):sel.push(id); draw(); }
+      else { closeSheet(); cb(t.dataset.px); } };
+    $('#exnew').onclick=()=>{ const n=$('#exq').value.trim(); if(!n){toast('名前を入力してください');return;}
+      const e={id:uid(),name:n,big3:false,rest:S.settings.rest,bar:true};S.exercises.push(e);save();
+      if(multi){sel.push(e.id);$('#exq').value='';draw();} else {closeSheet();cb(e.id);} };
+    if(multi)$('#exok').onclick=()=>{ if(!sel.length){toast('種目を選んでください');return;} closeSheet(); cb(sel); };
+  });
+}
+/* ---- プラン編集 ---- */
+function editPlan(id){
+  ED=id?JSON.parse(JSON.stringify(S.plans.find(p=>p.id===id))):
+    {id:uid(),name:'',days:[{label:'Day1',menuId:S.menus[0]?S.menus[0].id:''}],
+     weeks:[{label:'1週目',scale:100,deload:false}],curW:0,curD:0,_new:true};
+  drawPlan();
+}
+function drawPlan(keep){
+  let h='<label class="f">プラン名</label><input type="text" data-pl="name" value="'+esc(ED.name)+'" placeholder="例）週3 A/B/C">';
+  h+='<h2>回す順番</h2>';
+  ED.days.forEach((d,i)=>{
+    h+='<div class="row" style="margin-bottom:7px" data-i="'+i+'">'+
+      '<input type="text" data-pl="dlabel" value="'+esc(d.label)+'" style="width:78px">'+
+      '<select class="grow" data-pl="dmenu">'+opts(d.menuId)+'</select>'+
+      '<button class="btn sm ghost" data-pl="rmday">×</button></div>';
+  });
+  h+='<button class="btn wide sm" data-pl="addday">＋ 日を追加</button>';
+  h+='<h2>週ごとの重量（周期化）</h2>';
+  if(ED.weeks.length<2){
+    h+='<div class="small mute">いまは毎週同じ重量です。</div>'+
+      '<div class="row wrap" style="margin-top:8px"><button class="btn sm" data-pl="tpl4">3週＋デロードを作る</button>'+
+      '<button class="btn sm ghost" data-pl="addweek">週を1つ足す</button></div>';
+  }else{
+    ED.weeks.forEach((w,i)=>{
+      h+='<div class="row" style="margin-bottom:7px" data-i="'+i+'">'+
+        '<input type="text" data-pl="wlabel" value="'+esc(w.label)+'" style="width:92px">'+
+        '<div class="stp grow"><button data-pl="wn" data-v="-2.5">−</button>'+
+        '<input class="grow num" type="number" data-pl="wscale" value="'+w.scale+'" step="2.5">'+
+        '<button data-pl="wn" data-v="2.5">＋</button></div><span class="small mute">%</span>'+
+        '<button class="btn sm ghost" data-pl="rmweek">×</button></div>';
+    });
+    h+='<button class="btn wide sm" data-pl="addweek">＋ 週を追加</button>';
+  }
+  h+='<label class="f">次にやるところ</label><div class="row">'+
+    (ED.weeks.length>1?'<select class="grow" data-pl="curw">'+ED.weeks.map((w,i)=>'<option value="'+i+'"'+((ED.curW||0)===i?' selected':'')+'>'+esc(w.label)+'</option>').join('')+'</select>':'')+
+    '<select class="grow" data-pl="curd">'+ED.days.map((d,i)=>'<option value="'+i+'"'+((ED.curD||0)===i?' selected':'')+'>'+esc(d.label)+'</option>').join('')+'</select></div>'+
+    (ED.weeks.length>1?'<div class="row" style="margin-top:7px"><span class="small mute">何周目</span>'+
+      '<input type="number" inputmode="numeric" data-pl="cycle" value="'+(ED.cycle||1)+'" min="1" style="width:80px;text-align:center"></div>':'');
+  h+='<button class="btn wide fill" style="margin-top:14px" data-pl="save">保存する</button>'+
+    (ED._new?'':'<button class="btn wide ghost" style="margin-top:8px" data-pl="del">このプランを削除</button>');
+  sheet(ED._new?'プランを作る':'プランを編集',h,null,keep);
+}
+const opts=sel=>'<option value="">未設定</option>'+S.menus.map(m=>'<option value="'+m.id+'"'+(m.id===sel?' selected':'')+'>'+esc(m.name)+'</option>').join('');
+
+let LE=null;
+function readLE(){
+  const b=$('#shBody');
+  b.querySelectorAll('[data-le]').forEach(el=>{ LE.items[+el.dataset.i].sets[+el.dataset.j][el.dataset.le]=+el.value||0; });
+  const d=b.querySelector('[data-ledate]'); if(d&&d.value)LE.date=d.value;
+}
+function editLog(keep){
+  const l=LE;
+  let h='<label class="f">日付</label><input type="date" data-ledate value="'+l.date+'">'+
+    '<div class="small mute" style="margin-top:8px">回数を0にすると、そのセットは削除されます。</div>';
+  l.items.forEach((it,i)=>{ const bw=isBW(it.exId);
+    h+='<h2>'+esc(it.name)+'</h2><div class="sthead" style="grid-template-columns:18px 1fr 1fr 1fr"><span></span><span>'+(bw?'負荷 kg':'重量 kg')+'</span><span>回数</span><span>RPE</span></div>';
+    it.sets.forEach((st,j)=>{
+      h+='<div class="st" style="grid-template-columns:18px 1fr 1fr 1fr"><div class="idx num">'+(j+1)+'</div>'+
+        ['kg','reps','rpe'].map(f=>'<input class="num" style="text-align:center;font-weight:700" type="number" inputmode="decimal" data-le="'+f+'" data-i="'+i+'" data-j="'+j+'" value="'+(st[f]||'')+'"'+(f==='kg'&&bw?' placeholder="自重"':'')+'>').join('')+'</div>';
+    });
+    h+='<button class="btn sm ghost" data-act="leadd" data-i="'+i+'">＋ セットを足す</button>';
+  });
+  h+='<button class="btn wide fill" style="margin-top:16px" data-act="savelog" data-id="'+l.id+'">保存する</button>';
+  sheet('記録を修正',h,null,keep);
+}
+
+/* ========== 書き出し：iPhoneのホーム画面アプリでも保存できるよう共有シートを優先 ========== */
+async function exportData(){
+  const name='rack-'+todayStr()+'.json', txt=JSON.stringify(S);
+  try{
+    const f=new File([txt],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){
+      await navigator.share({files:[f],title:'RACK バックアップ'});
+      S.lastExport=Date.now();save();render();toast('書き出しました');return;
+    }
+  }catch(e){ if(e&&e.name==='AbortError'){toast('キャンセルしました');return;} }
+  const b=new Blob([txt],{type:'application/json'}),u=URL.createObjectURL(b),l=document.createElement('a');
+  l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);
+  S.lastExport=Date.now();save();render();toast('書き出しました');
+}
+
+/* ========== 自動バックアップ ========== */
+const BK='rack.bk';
+function backups(){ try{return JSON.parse(localStorage.getItem(BK))||[];}catch(e){return [];} }
+function autoBackup(){
+  if(!S.logs.length)return;
+  const bs=backups(), last=bs[bs.length-1];
+  if(last && Date.now()-last.t < 7*864e5) return;
+  bs.push({t:Date.now(),d:JSON.stringify(S)});
+  while(bs.length>3)bs.shift();
+  try{ localStorage.setItem(BK,JSON.stringify(bs)); }
+  catch(e){ while(bs.length>1){ bs.shift(); try{localStorage.setItem(BK,JSON.stringify(bs));break;}catch(e2){} } }
+}
+function backupList(){
+  const bs=backups();
+  if(!bs.length)return '<div class="small mute">まだバックアップはありません。記録を1回つけると、そこから週1で自動的に保存されます。</div>';
+  return bs.slice().reverse().map(b=>{ const d=new Date(b.t), o=JSON.parse(b.d);
+    return '<div class="li"><div><div class="nm">'+d.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'})+' '+
+      d.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})+'</div>'+
+      '<div class="mt">'+(o.logs||[]).length+'件の記録・'+(o.menus||[]).length+'メニュー</div></div>'+
+      '<button class="btn sm" style="margin-left:auto" data-act="restore" data-t="'+b.t+'">復元</button></div>'; }).join('');
+}
+
+/* ========== マニュアル ========== */
+const MAN=[
+ ['start','はじめての3ステップ',
+  '<p>RACKは「メニューを作る → 今日やる → 記録が残る」の3つだけです。</p>'+
+  '<ol><li><b>メニューを作る</b>…「組む」タブで、種目とセット数を決めます。</li>'+
+  '<li><b>今日やる</b>…「今日」タブの赤いボタンを押すとセッションが始まります。</li>'+
+  '<li><b>記録が残る</b>…終了すると「記録」タブに推定1RMのグラフが伸びていきます。</li></ol>'+
+  '<img class="shot" src="man-today.png" alt="今日タブ">'+
+  '<div class="note"><b>アプリを開くと必ずこの画面</b>前回どのタブにいても、起動時は必ず「今日」から始まります。</div>'],
+ ['menu','メニューを作る',
+  '<p>「組む」タブ →「＋ メニューを作る」。</p>'+
+  '<ol><li>メニュー名を入れます（例：スクワットの日）</li>'+
+  '<li>「＋ 種目を追加」で種目をタップ。複数まとめて選べます</li>'+
+  '<li>追加すると <b>3セット × 5回 RPE8</b> が最初から入ります</li>'+
+  '<li>変えたいときは、グレーの行（3セット × 5回 RPE8）をタップ</li></ol>'+
+  '<img class="shot" src="man-menu.png" alt="メニュー編集">'+
+  '<p>行をタップすると、セット数・回数・重量の決め方を＋−で変えられます。</p>'+
+  '<img class="shot" src="man-group.png" alt="セット構成">'+
+  '<div class="note"><b>重量の決め方は3つ</b>'+
+  '<b style="font-weight:700">RPE</b> …「あと何回できるか」で決める。RPE8＝あと2回。推奨重量が自動で出ます。<br>'+
+  '<b style="font-weight:700">%1RM</b> … 1RMに対する割合。<br>'+
+  '<b style="font-weight:700">重量を直接</b> … kgを固定。</div>'+
+  '<div class="note"><b>ダンベルやマシンの重さの刻み</b>バーベル種目は2.5kg刻み、それ以外は1kg刻みで推奨重量を出します。'+
+  '2kg刻みのダンベルや5kg刻みのマシンは、設定タブ →「種目マスタ」→ 種目をタップ →「重量の刻み」で変えられます。</div>'+
+  '<p>ピラミッド（重量を変えながら上げていく）をやりたいときは「＋セット構成」を押して行を増やします。'+
+  '例：<b>3セット×5回 RPE8</b> ＋ <b>1セット×3回 90%</b>。</p>'],
+ ['today','今日のトレーニング',
+  '<p>「今日」タブの赤いボタンを押すだけで始まります。プランを作ってあれば、次にやる日が自動で表示されます。</p>'+
+  '<img class="shot" src="man-session.png" alt="セッション画面">'+
+  '<p><b>次にやるセットは番号と✓が赤</b>になります。今どこまで終わったか、画面を見た瞬間に分かります。</p>'+
+  '<p>重量と回数は＋−ボタンで変えられます。キーボードを出さずに片手で操作できます。'+
+  '右の<b>✓</b>を押すとそのセットが完了になり、休憩タイマーが自動で始まります。</p>'+
+  '<div class="note"><b>前回◯◯kg×◯</b>種目名の右に、その種目の前回の実績が出ます。</div>'+
+  '<p>推奨重量が出ない補助種目（基準1RMを決めていない種目）には、<b>「前回と同じ」</b>ボタンが出ます。'+
+  '押すと前回の重量と回数がまとめて入ります（デロードや軽めの日はとばして、その前の普通の日を使います）。'+
+  'BIG3など推奨重量が出る種目には出ません。すでに✓を付けたセットは書き換わりません。</p>'+
+  '<div class="note"><b>「終了」を押したとき</b>まだ残っているセットがあると、確認が出ます。'+
+  '「OK」で終わった分だけ記録され、プランは次の日に進みます。</div>'+
+  '<div class="note"><b>前の日のセッションが残っていたら</b>今日の画面の一番上に赤い枠で出ます。'+
+  '「その日の記録として終了」「今日の分として続ける」「破棄」から選んでください。'+
+  '<b>夜遅くに始めて日付をまたいだだけ</b>なら（始めてから6時間以内）、この枠は出ずにそのまま続けられます。</div>'+
+  '<p>下の赤い「フォーカスで進める」を押すと、1セットずつの全画面になります。ジムではこちらが楽です。</p>'+
+  '<img class="shot" src="man-focus.png" alt="フォーカス画面">'+
+  '<p>バーに付けるプレートが色つきで出ます（赤25・青20・黄15・緑10・白5・黒2.5・銀1.25kg）。'+
+  '「記録して休憩」で記録され、次のセットに進み、タイマーが始まります。</p>'+
+  '<div class="note"><b>フォーカス画面のRPE</b>最初から目安のRPEが入っています。'+
+  '<b>触らずに記録すると「目安どおりできた」</b>として扱います。実際のきつさが違ったときだけ＋−で変えてください。</div>'],
+ ['bw','自重種目（懸垂・アブローラーなど）',
+  '<p>懸垂・ディップス・アブローラー・腕立て伏せは、最初から<b>自重種目</b>として入っています。'+
+  '自重種目は重さではなく<b>「あと何回できるか」</b>できつさが決まるので、RPEから<b>回数</b>を自動で出します。</p>'+
+  '<img class="shot" src="man-bw.png" alt="自重種目のセット構成">'+
+  '<ol><li>メニューに自重種目を追加すると <b>3セット × RPE8（自重）</b> が入ります</li>'+
+  '<li>行をタップして、<b>「この負荷で、いま限界まで何回できる？」</b>に今の最大回数を入れます（最初の1回だけ）</li>'+
+  '<li>すると「今日は10回」のように回数が出ます。最大12回でRPE8なら、あと2回残す＝10回です</li></ol>'+
+  '<div class="note"><b>アシスト（マイナス重量）</b>負荷を<b>マイナス</b>にすると、アシストマシンやバンドで軽くした状態として記録します（例：−10＝10kgアシスト）。'+
+  '<b>プラス</b>にすると加重（ベルトにプレートなど）です。0が自重です。'+
+  'セット中の画面でも負荷の＋−で変えられます。</div>'+
+  '<img class="shot" src="man-bwsession.png" alt="自重種目のセッション画面">'+
+  '<div class="note"><b>最大回数は負荷ごとに別々</b>自重の最大12回と、10kgアシストの最大回数は別に覚えています。'+
+  'アシストを減らしていくときは、新しい負荷で一度「いま何回できるか」を入れるか、そのままやって記録すれば次から回数が出ます。</div>'+
+  '<p>記録タブでは、自重種目は<b>推定最大回数</b>の推移が出ます。自重種目は週ごとのボリュームには含めません。</p>'],
+ ['timer','タイマーの設定（最初に1回だけ）',
+  '<p>RACKはiPhone標準の<b>時計アプリ</b>のタイマーを鳴らします。音楽を止めずに鳴らせるのが利点です。'+
+  'そのために、ショートカットを1つだけ作ります。<b>5分で終わり、以降は何もしなくて済みます。</b></p>'+
+  '<ol>'+
+  '<li>iPhoneの<b>ショートカット</b>アプリを開く</li>'+
+  '<li>右上の<b>＋</b>で新規ショートカットを作る</li>'+
+  '<li>「アクションを追加」→検索欄に<b>タイマー</b>と入力</li>'+
+  '<li><b>「タイマーを開始」</b>を選ぶ</li>'+
+  '<li>アクションの中の数字（1分など）を確認する</li>'+
+  '<li>上部の<b>入力を受け取る</b>設定にするため、数字の部分をタップして'+
+  '<b>「ショートカットの入力」</b>を選ぶ（変数の一覧に出ます）</li>'+
+  '<li>単位が<b>秒</b>になっていることを確認する（分になっていたらタップして秒に変更）</li>'+
+  '<li>右上の<b>完了</b>。名前を<b>レストタイマー</b>にする</li>'+
+  '<li>RACKの「設定」タブ →「ショートカット名」が<b>レストタイマー</b>と一致しているか確認</li>'+
+  '<li>設定タブの<b>「ショートカットを試す」</b>を押す。時計アプリが開いて90秒のタイマーが動けば成功</li>'+
+  '</ol>'+
+  '<img class="shot" src="man-timerset.png" alt="タイマー設定">'+
+  '<div class="note"><b>タイマーが動かない場面</b>'+
+  'その日の<b>最後のセット</b>を✓したとき（もう休憩はいらないので）と、'+
+  '<b>20秒以内に続けて✓</b>したとき（あとからまとめて入力している、と判断します）はタイマーを起動しません。</div>'+
+  '<div class="note"><b>自動で開始したくないとき</b>'+
+  'タイマーパネルの「セット完了で自動的に開始」をオフにすると、✓を押してもタイマーは動きません。'+
+  '連続してセットを入力したいときや、ジム以外で記録を付けるときに使ってください。設定タブからも切り替えられます。</div>'+
+  '<p>設定が終われば、あとはセットの<b>✓</b>を押すだけで自動的に休憩が始まります。'+
+  '自分の好きな秒数で始めたいときは、画面右上の<b>タイマー</b>を押してください。</p>'+
+  '<img class="shot" src="man-timer.png" alt="タイマーパネル">'+
+  '<div class="note"><b>「実行したあと」の3つ</b>'+
+  '<b style="font-weight:700">時計アプリを開く</b> … 残り時間を時計アプリで見たいとき。<br>'+
+  '<b style="font-weight:700">このアプリに戻る</b> … 一瞬切り替わってすぐRACKに戻ります。'+
+  'Safariが開いてしまう場合は「何もしない」にして、ショートカット側に「Appを開く → RACK」を足してください。<br>'+
+  '<b style="font-weight:700">何もしない</b> … ショートカットアプリに留まります。</div>'+
+  '<div class="note"><b>ショートカットの画面が一瞬映るのは仕様です</b>'+
+  'iPhoneの仕組み上、必ず一度ショートカットアプリを経由します。完全になくすことはできません。</div>'+
+  '<p>プリセットの3つと＋−の刻みは設定タブで変えられます。「3」「3:00」「180」どの書き方でも入ります。</p>'],
+ ['plan','プランで回す（A/B/Cと周期化）',
+  '<p>メニューが複数あるとき、順番に回すのが<b>プラン</b>です。「組む」タブの下にあります。</p>'+
+  '<img class="shot" src="man-plan.png" alt="プラン編集">'+
+  '<ol><li><b>回す順番</b>…Day1・Day2…にメニューを割り当てます。終わると自動で次へ進みます</li>'+
+  '<li><b>週ごとの重量</b>…「3週＋デロードを作る」を押すと、100% / 102.5% / 105% / 85% の4週が一度に作られます</li>'+
+  '<li>最終週の最後の日が終わると、自動で1週目に戻ります</li></ol>'+
+  '<div class="note"><b>係数の意味</b>102.5%の週は、推奨重量がすべて1.025倍になります。'+
+  'メニュー自体を作り直す必要はありません。</div>'+
+  '<div class="note"><b>RPEで決めるセットの場合</b>「RPE8」のメニューを105%の週にやると、重さが上がるぶん実際のきつさも上がります。'+
+  'その週は目標のところに<b>「今週105%・RPE9目安」</b>のように、その重さに見合ったRPEが出ます。'+
+  'フォーカス画面のRPE欄にもこの目安が最初から入ります。</div>'+
+  '<h3>重さが上がるタイミング</h3>'+
+  '<p>RPEを入れなくても、<b>指定どおり全回数できたら次は+2.5kg</b>（自重種目は+1回）になります。'+
+  'ただし週ごとに%を変えるプランでは、プラン自体が週ごとに重くしているので、'+
+  '<b>一番重い週（105%の週など）を全回数こなせたとき</b>だけ、次の周から+2.5kgになります。</p>'+
+  '<div class="note"><b>潰れたとき</b>指定の回数に届かなかったら、その重さと回数から基準を下げます。'+
+  '次の回は自動で軽くなるので、何もしなくて大丈夫です。</div>'+
+  '<div class="note"><b>何周目かの表示</b>今日の画面に<b>「2周目・3週目（通算7週目）」</b>のように出ます。'+
+  '12週のプログラムのどこにいるかが分かります。</div>'+
+  '<div class="note"><b>休み明け</b>前回の記録から8日以上あくと、今日の画面に案内が出ます。'+
+  '<b>「軽め（90%）で始める」</b>か<b>「前の週からやり直す」</b>を選べます。軽めの日は基準を上げません。</div>'+
+  '<p>「今日」タブの「この日をとばす」で、進める位置だけ動かせます。'+
+  '戻したいときはプラン編集の「次にやるところ」と「何周目」で直せます。</p>'],
+ ['log','記録とバックアップ',
+  '<p>「記録」タブでは、種目ごとの<b>推定1RM</b>の推移と、<b>週ごとの総ボリューム</b>が見られます。</p>'+
+  '<img class="shot" src="man-log.png" alt="記録タブ">'+
+  '<p>推定1RMは、実際に挙げた重量・回数・RPEから計算した「1回なら何kg挙がるか」です。'+
+  'この数字が推奨重量の基準になり、記録をつけるたびに次のように更新されます。</p>'+
+  '<div class="note"><b>基準の動き方</b>'+
+  '・<b>RPEを入れた</b> → そのRPEから計算した値に近づけます（RPE8のつもりがRPE7だった、なら上がります）<br>'+
+  '・<b>RPEなしで全回数できた</b> → 次回+2.5kg（%を週で変えるプランは、一番重い週のあとだけ）<br>'+
+  '・<b>回数が足りなかった</b> → 潰れた重さから計算して下げます<br>'+
+  '・<b>デロード・軽めの日</b> → 基準は動かしません（潰れたときだけ下げます）<br>'+
+  '・RPE6台の申告は「少なくともこれくらいは挙がる」として、上げる方向にだけ使います</div>'+
+  '<div class="note"><b>基準をリセットしたいとき</b>設定タブの「基準1RM」を書き換えると、確認のあとその値から数え直します。'+
+  '試合で新しい1RMが出たときや、しばらく休んで落ちたときに使ってください。同じ数字を打ち直しただけなら何も変わりません。</div>'+
+  '<p>総ボリュームは「重量×回数」を全種目（自重種目を除く）で合計した数字です。直近12週を月曜はじまりで集計し、休んだ週は0として表示します。'+
+  '強度が変わらないのにボリュームだけ増え続けているときは、疲労がたまりやすい状態です。</p>'+
+  '<h3>記録を直す</h3>'+
+  '<p>履歴は月ごとにまとまっています。記録をタップ →「この記録を修正する」で、'+
+  '<b>日付・重量・回数・RPE</b>を後から直せます。「＋ セットを足す」でつけ忘れたセットも追加できます。'+
+  '回数を0にして保存すると、そのセットは削除されます。</p>'+
+  '<h3>バックアップ</h3>'+
+  '<p>最初の記録のすぐ後と、その後は週に1回、自動でバックアップが作られます（最新3件）。'+
+  '設定タブの「自動バックアップから復元」で、その時点に戻せます。</p>'+
+  '<div class="note"><b>それでも書き出しは必要です</b>自動バックアップもこの端末の中にあります。'+
+  '機種変更やSafariのデータ削除では一緒に消えるので、月に1回は設定タブの「書き出す」でファイルを保存してください。'+
+  '「書き出す」を押すと共有メニューが開くので、<b>「"ファイル"に保存」</b>を選べばiPhone内やiCloud Driveに残せます。'+
+  '30日書き出していないと、今日の画面にお知らせが出ます。</div>']
+];
+function manual(sec){
+  const cur=sec||'start';
+  let h='<div class="chips" style="margin-bottom:12px">'+MAN.map(m=>'<button class="chip'+(m[0]===cur?' on':'')+'" data-man="'+m[0]+'">'+m[1].replace(/（.*$/,'')+'</button>').join('')+'</div>';
+  h+='<div class="man"><h3>'+MAN.find(m=>m[0]===cur)[1]+'</h3>'+MAN.find(m=>m[0]===cur)[2]+'</div>';
+  const i=MAN.findIndex(m=>m[0]===cur);
+  if(i<MAN.length-1)h+='<button class="btn wide" style="margin-top:20px" data-man="'+MAN[i+1][0]+'">次へ：'+MAN[i+1][1]+'</button>';
+  sheet('使い方',h,()=>{ const c=document.querySelector('#shBody .chip.on'); if(c&&c.scrollIntoView)c.scrollIntoView({block:'nearest',inline:'center'}); });
+}
+/* ツアー */
+const TOUR=[['ようこそ','RACKは自分でメニューを組めるトレーニングログです。最初に使い方をざっと見ておくと迷いません。'],
+ ['まずメニューを1つ','「組む」タブで種目とセット数を決めます。種目を追加すると 3セット×5回 RPE8 が初期値で入るので、そのままでも始められます。'],
+ ['タイマーは最初だけ設定','iPhoneの時計アプリを鳴らすために、ショートカットを1つ作ります。設定タブのマニュアルに手順があります。']];
+let TI=0;
+function tour(){ TI=0;$('#tour').classList.add('on');drawTour(); }
+function drawTour(){
+  $('#tH').textContent=TOUR[TI][0];$('#tP').textContent=TOUR[TI][1];
+  $('#tDots').innerHTML=TOUR.map((_,i)=>'<i class="'+(i===TI?'on':'')+'"></i>').join('');
+  $('#tNext').textContent=TI===TOUR.length-1?'マニュアルを開く':'次へ';
+}
+
+/* ========== イベント ========== */
+document.addEventListener('click',ev=>{
+  const nv=ev.target.closest('nav button'); if(nv){TAB=nv.dataset.tab;render(true);return;}
+  const t=ev.target.closest('[data-act]'); if(t){ act(t,ev); return; }
+  const g=ev.target.closest('[data-g]'); if(g){ grp(g); return; }
+  const m=ev.target.closest('[data-man]'); if(m){ manual(m.dataset.man); return; }
+  const e2=ev.target.closest('[data-ed]'); if(e2){ med(e2); return; }
+  const p=ev.target.closest('[data-pl]'); if(p){ pld(p); return; }
+  if(ev.target.id==='sheet')closeSheet();
+});
+function act(t,ev){
+  const a=t.dataset.act,id=t.dataset.id,i=+t.dataset.i;
+  if(a==='pick'){
+    if(!S.menus.length){toast('先にメニューを作ってください');TAB='build';render();return;}
+    sheet('メニューを選ぶ',S.menus.map(m=>'<div class="li" data-act="startmenu" data-id="'+m.id+'"><div><div class="nm">'+esc(m.name)+'</div>'+
+      '<div class="mt">'+m.items.map(x=>EX(x.exId).name).slice(0,3).join('・')+'</div></div><div class="go">›</div></div>').join(''));return; }
+  if(a==='startmenu'){ const m=MENU(id);closeSheet();startSession(m,100,m.name,null);return; }
+  if(a==='start'){ const p=S.plans.find(x=>x.id===id),n=planNext(p);
+    if(!n||!n.menu){toast('この日にメニューが設定されていません');return;}
+    const sc=n.w.deload?Math.min(n.w.scale||100,90):(n.w.scale||100);
+    startSession(n.menu,sc,(p.weeks.length>1?n.w.label+' ':'')+n.d.label+'　'+n.menu.name,p.id,{dl:!!n.w.deload,pk:isPeak(p,n.w)});return; }
+  if(a==='startlight'){ const p=S.plans.find(x=>x.id===id),n=planNext(p);
+    if(!n||!n.menu){toast('この日にメニューが設定されていません');return;}
+    const sc=(n.w.deload?Math.min(n.w.scale||100,90):(n.w.scale||100))*0.9;
+    startSession(n.menu,Math.round(sc*10)/10,(p.weeks.length>1?n.w.label+' ':'')+n.d.label+'　'+n.menu.name+'（軽め）',p.id,{dl:true});return; }
+  if(a==='redoweek'){ const p=S.plans.find(x=>x.id===id);
+    let w=(p.curW||0)-1; if(w<0){ w=p.weeks.length-1; p.cycle=Math.max(1,(p.cycle||1)-1); }
+    p.curW=w;p.curD=0;save();render();toast(p.weeks[w].label+'の最初に戻しました');return; }
+  if(a==='skipday'){ const p=S.plans.find(x=>x.id===id),n=planNext(p);
+    if(!confirm((n?n.d.label+'（'+(n.menu?n.menu.name:'')+'）':'この日')+'をとばして、次の日に進めますか？\n戻したいときは「組む」→プラン→「次にやるところ」で直せます。'))return;
+    advance(p);render();toast('次の日に進めました');return; }
+  if(a==='chk'){ const r=t.closest('.st'),it=S.active.items[+r.dataset.i],s=it.sets[+r.dataset.j];
+    if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+    s.done=!s.done; r.classList.toggle('done',s.done);
+    if(s.done){ const ip=r.querySelectorAll('input'); s.kg=+ip[0].value||0;s.reps=+ip[1].value||0;
+      if(!ip[0].value&&s.kg)ip[0].value=fmt(s.kg); if(!ip[1].value&&s.reps)ip[1].value=s.reps; }
+    save(); refreshHead(); markNext();
+    if(s.done)autoRest(it.rest);
+    return; }
+  if(a==='nudge'){ const r=t.closest('.st'),s=S.active.items[+r.dataset.i].sets[+r.dataset.j],f=t.dataset.f;
+    const inp=r.querySelector('input[data-f="'+f+'"]');
+    const exId=S.active.items[+r.dataset.i].exId;
+    const stp=f==='kg'?stepOf(exId):1;
+    let v=(+inp.value||0)+(+t.dataset.v)*stp; if(v<0&&!(f==='kg'&&isBW(exId)))v=0;
+    inp.value=v?fmt(v):''; s[f]=v; save(); return; }
+  if(a==='addset'){ const it=S.active.items[i],l=it.sets[it.sets.length-1]||{};
+    it.sets.push({kg:l.kg||'',reps:l.reps||'',rpe:'',trpe:l.trpe||'',done:false});save();render();return; }
+  if(a==='same'){ const it=S.active.items[i],ls=lastSets(it.exId);
+    if(!ls){toast('前回の記録がありません');return;}
+    it.sets.forEach((s,j)=>{ if(s.done)return; const src=ls[Math.min(j,ls.length-1)];
+      s.kg=src.kg||'';s.reps=src.reps||''; });
+    save();render();toast('前回の重量を入れました');return; }
+  if(a==='rmex'){ S.active.items.splice(i,1);save();render();return; }
+  if(a==='addex'){ pickEx(ids=>{ (Array.isArray(ids)?ids:[ids]).forEach(x=>S.active.items.push(
+      {exId:x,rest:EX(x).rest,goal:'自由',sets:[{kg:'',reps:'',rpe:'',done:false}]})); save();render(); },true);return; }
+  if(a==='focus'){ openFocus();return; }
+  if(a==='finish'){ finish();return; }
+  if(a==='stalefin'){ const left=S.active.items.reduce((n,it)=>n+it.sets.filter(x=>!x.done).length,0);
+    if(left)S.active.items.forEach(it=>it.sets=it.sets.filter(x=>x.done));   // 残りセットは記録しない
+    finish({stay:true});return; }
+  if(a==='staletoday'){ S.active.date=todayStr();S.active.ts=Date.now();save();render();toast('今日の日付で続けます');return; }
+  if(a==='cancel'){ if(confirm('このセッションを破棄しますか？')){S.active=null;save();render(true);} return; }
+  if(a==='fxclose'){ $('#focus').classList.remove('on');render();return; }
+  if(a==='fxdone'){ fxDone(false);return; }
+  if(a==='fxskip'){ fxDone(true);return; }
+  if(a==='fxn'){ const f=t.dataset.f,map={kg:'#fxKgI',reps:'#fxRepI',rpe:'#fxRpeI'},inp=$(map[f]);
+    const exId=S.active.items[FX.i].exId;
+    const stp=f==='kg'?stepOf(exId):f==='rpe'?0.5:1;
+    let v;
+    if(f==='rpe'){ FX.rt=true; }
+    if(f==='rpe'&&inp.value===''){ v=8; }
+    else { v=(+inp.value||0)+(+t.dataset.v)*stp; if(f==='rpe')v=Math.min(10,Math.max(5,v)); }
+    if(v<0&&!(f==='kg'&&isBW(exId)))v=0; inp.value=v?fmt(v):''; paintFX(); return; }
+  if(a==='timer'){ timerPanel();return; }
+  if(a==='autotgl'){ S.settings.autoTimer=!autoOn();save();timerPanel();return; }
+  if(a==='ver'){ sheet('バージョン','<div class="ttl">RACK v'+VER+'</div>'+
+    '<div class="small mute" style="margin-bottom:14px">この表示が最新でなければ、アップロードが反映されていません。</div>'+
+    CHANGES.map(c=>'<div class="li" style="display:block"><div class="nm">v'+c[0]+'</div><div class="mt" style="margin-top:3px">'+esc(c[1])+'</div></div>').join('')+
+    '<button class="btn wide ghost" style="margin-top:10px" data-act="manual">使い方を見る</button>');return; }
+  if(a==='tpre'){ TB=+t.dataset.v;timerPanel();return; }
+  if(a==='tbn'){ TB=Math.max(5,TB+(+t.dataset.v)*(S.settings.step||30));timerPanel();return; }
+  if(a==='tgo'){ if(T.h){stopRest();}else{startRest(TB);} closeSheet();return; }
+  if(a==='tadj'){ T.end+=(+t.dataset.v)*1000;T.total+=(+t.dataset.v);tick();return; }
+  if(a==='tstop'){ stopRest();return; }
+  if(a==='testsc'){ startRest(90);toast('90秒のタイマーを起動しました');return; }
+  if(a==='manual'){ manual(t.dataset.sec);return; }
+  if(a==='tourskip'){ $('#tour').classList.remove('on');S.tour=true;save();return; }
+  if(a==='tournext'){ if(TI<TOUR.length-1){TI++;drawTour();} else {$('#tour').classList.remove('on');S.tour=true;save();manual();} return; }
+  if(a==='newmenu'){ editMenu(null);return; }
+  if(a==='editmenu'){ editMenu(id);return; }
+  if(a==='newplan'){ if(!S.menus.length){toast('先にメニューを作ってください');return;} editPlan(null);return; }
+  if(a==='editplan'){ editPlan(id);return; }
+  if(a==='shclose'){ closeSheet();return; }
+  if(a==='chart'){ S.chartEx=id;save();render();return; }
+  if(a==='openlog'){ const l=S.logs.find(x=>x.id===id);
+    sheet(l.title,'<div class="small mute">'+l.date+(l.dl?'・軽めの日（基準は上げません）':'')+'</div>'+l.items.map(it=>{ const bw=isBW(it.exId);
+      return '<h2>'+esc(it.name)+'</h2><table class="log">'+
+      it.sets.map((s,n)=>'<tr><td>'+(n+1)+'</td><td>'+(bw?loadTxt(s.kg):fmt(s.kg)+'kg')+' × '+s.reps+(s.rpe?' @'+s.rpe:'')+'</td><td>'+
+      (bw?(s.rpe?'最大'+fmt(+s.reps+10-s.rpe)+'回':''):(E1(s)?fmt(Math.round(E1(s)*10)/10)+'kg':''))+'</td></tr>').join('')+'</table>'; }).join('')+
+      '<button class="btn wide" style="margin-top:18px" data-act="editlog" data-id="'+l.id+'">この記録を修正する</button>'+
+      '<button class="btn wide ghost" style="margin-top:8px" data-act="dellog" data-id="'+l.id+'">この記録を削除</button>');return; }
+  if(a==='editlog'){ LE=JSON.parse(JSON.stringify(S.logs.find(x=>x.id===id))); editLog();return; }
+  if(a==='leadd'){ readLE(); const it=LE.items[i], l=it.sets[it.sets.length-1]||{};
+    it.sets.push({kg:l.kg||0,reps:l.reps||0,rpe:0,t:l.t||0,tp:l.tp||0,tr:l.tr||0}); editLog(true);return; }
+  if(a==='savelog'){ readLE(); const l=LE;
+    l.items.forEach(it=>{ const bw=isBW(it.exId); it.sets=it.sets.filter(x=>+x.reps&&(bw||+x.kg)); });
+    l.items=l.items.filter(it=>it.sets.length);
+    l.volume=0;l.items.forEach(it=>it.sets.forEach(x=>l.volume+=setVol(it.exId,x)));
+    const old=S.logs.find(x=>x.id===l.id);
+    if(old&&old.date!==l.date)l.ts=new Date(l.date+'T12:00:00').getTime();
+    if(!l.items.length)S.logs=S.logs.filter(x=>x.id!==l.id); else S.logs=S.logs.map(x=>x.id===l.id?l:x);
+    LE=null;save();closeSheet();render();toast('修正しました');return; }
+  if(a==='dellog'){ if(confirm('削除しますか？')){S.logs=S.logs.filter(x=>x.id!==id);save();closeSheet();render();} return; }
+  if(a==='rmall'){ sheet('基準1RM',S.exercises.filter(e=>!e.bw).map(e=>'<label class="f">'+esc(e.name)+'</label>'+
+    '<input type="number" step="2.5" data-rm="'+e.id+'" value="'+(S.oneRM[e.id]||'')+'">').join(''));return; }
+  if(a==='newex'||a==='editex'){
+    const e=id?S.exercises.find(x=>x.id===id):{id:uid(),name:'',rest:S.settings.rest,bar:true,big3:false,_new:true};
+    sheet(id?'種目を編集':'種目を追加',
+      '<label class="f">種目名</label><input type="text" id="exN" value="'+esc(e.name)+'">'+
+      '<label class="f">休憩 秒</label><input type="number" id="exR" value="'+e.rest+'">'+
+      '<label class="f"><input type="checkbox" id="exW" '+(e.bw?'checked':'')+' style="width:auto"> 自重種目（RPEから回数を決める・アシストも可）</label>'+
+      '<label class="f"><input type="checkbox" id="exB" '+(e.bar?'checked':'')+' style="width:auto"> バーベル種目（プレート計算する）</label>'+
+      '<label class="f">重量の刻み kg（空欄＝バーベルは'+(S.settings.round||2.5)+'、それ以外は1）</label>'+
+      '<input type="number" inputmode="decimal" id="exSt" step="0.25" value="'+(e.step||'')+'" placeholder="自動">'+
+      '<label class="f"><input type="checkbox" id="exG" '+(e.big3?'checked':'')+' style="width:auto"> BIG3として扱う</label>'+
+      '<button class="btn wide fill" style="margin-top:14px" id="exS">保存</button>'+
+      (id?'<button class="btn wide ghost" style="margin-top:8px" id="exD">削除</button>':''),()=>{
+        $('#exS').onclick=()=>{ e.name=$('#exN').value.trim()||'無名の種目';e.rest=+$('#exR').value||180;
+          e.bw=$('#exW').checked;e.bar=e.bw?false:$('#exB').checked;e.big3=e.bw?false:$('#exG').checked;e.step=+$('#exSt').value||0;
+          if(e._new){delete e._new;S.exercises.push(e);} save();closeSheet();render(); };
+        if(id)$('#exD').onclick=()=>{
+          const used=S.menus.filter(m=>m.items.some(x=>x.exId===id));
+          if(used.length){ alert('「'+used.map(m=>m.name).join('」「')+'」で使われているため削除できません。\n先にメニューから外してください。');return; }
+          if(confirm('削除しますか？（過去の記録は残ります）')){S.exercises=S.exercises.filter(x=>x.id!==id);save();closeSheet();render();} };
+      });return; }
+  if(a==='restore'){ const b=backups().find(x=>String(x.t)===t.dataset.t); if(!b)return;
+    if(!confirm('この時点のデータに戻します。いまの記録は上書きされます。よろしいですか？'))return;
+    try{ load2(JSON.parse(b.d)); save(); render(); closeSheet(); toast('復元しました'); }catch(e){ toast('復元できませんでした'); }
+    return; }
+  if(a==='backups'){ sheet('自動バックアップ',
+    '<div class="small mute" style="margin-bottom:12px">週に1回、アプリを開いたときに自動で保存されます（最新3件）。'+
+    'この端末の中に保存されるため、機種変更やSafariのデータ削除では消えます。念のため月1回は「書き出す」も使ってください。</div>'+
+    backupList());return; }
+  if(a==='export'){ exportData();return; }
+  if(a==='import'){ const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
+    inp.onchange=()=>{const f=inp.files[0];if(!f)return;const r=new FileReader();
+      r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.exercises)throw 0;
+        if(confirm('現在のデータを置き換えます。よろしいですか？')){S=d;load2(d);save();render();toast('読み込みました');}}catch(e){toast('読み込めませんでした');}};
+      r.readAsText(f);};inp.click();return; }
+  if(a==='wipe'){ if(confirm('全データを削除します。')&&confirm('本当に削除しますか？')){localStorage.removeItem(KEY);load();render();toast('削除しました');} return; }
+}
+function load2(d){ S=d; migrate(); normalize(); }
+function grp(t){
+  const G=ED._g; if(!G)return;
+  const k=t.dataset.g;
+  const exId=ED.items[G.i].exId, bw=isBW(exId);
+  const read=()=>{ document.querySelectorAll('[data-g="v"]').forEach(i=>{ G.g[i.dataset.f]=+i.value||0; });
+    const mx=document.querySelector('[data-g="max"]'); if(mx)G.max=mx.value; };
+  if(k==='n'){ read(); const f=t.dataset.f, st=f==='rpe'?0.5:f==='pct'?2.5:f==='kg'?(bw?stepOf(exId):2.5):1;
+    const lo=f==='sets'||f==='reps'?1:(f==='kg'&&bw)?-200:f==='rpe'?5:0;
+    let v=(+G.g[f]||0)+(+t.dataset.v)*st; if(f==='rpe')v=Math.min(10,v);
+    G.g[f]=Math.max(lo,v); G.redraw(); return; }
+  if(k==='mode'){ read(); G.g.mode=t.dataset.v; if(G.g.mode==='reps'&&!+G.g.reps)G.g.reps=10; G.redraw(); return; }
+  if(k==='ok'){ read();
+    if(bw&&G.max!=null&&G.max!==''){ const key=bwKey(exId,G.g.kg), v=+G.max||0;
+      if(Math.round(bwBase(exId,G.g.kg))!==v){ S.bwMax[key]=v; S.bwAt[key]=Date.now(); save(); } }
+    const it=ED.items[G.i];
+    if(G.j==null)it.groups.push(G.g); else it.groups[G.j]=G.g;
+    ED._g=null; drawMenu(ED._y||0); return; }
+}
+function med(t){
+  const k=t.dataset.ed, row=t.closest('[data-i]'), i=row?+row.dataset.i:+t.dataset.i, j=row&&row.dataset.j!=null?+row.dataset.j:null;
+  const nm=$('#shBody').querySelector('[data-ed="name"]'); if(nm)ED.name=nm.value;
+  ED._y=$('#shBody').scrollTop;
+  if(k==='addex'){ pickEx(ids=>{ (Array.isArray(ids)?ids:[ids]).forEach(x=>ED.items.push(
+      {exId:x,rest:EX(x).rest,groups:[defGroup(x)]})); drawMenu(ED._y||0); },true);return; }
+  if(k==='rmex'){ ED.items.splice(i,1);drawMenu(1);return; }
+  if(k==='addg'){ editGroup(i,null);return; }
+  if(k==='editg'){ editGroup(i,j);return; }
+  if(k==='rmg'){ const it=ED.items[i]; it.groups.splice(j,1); if(!it.groups.length)it.groups.push(defGroup(it.exId)); drawMenu(1);return; }
+  if(k==='rest'){ const v=prompt('休憩の秒数',ED.items[i].rest||180); if(v!=null){ED.items[i].rest=+v||180;drawMenu(1);} return; }
+  if(k==='save'){ if(!ED.name)ED.name='無題のメニュー';
+    if(!ED.items.length){toast('種目を追加してください');return;}
+    const nw=ED._new;delete ED._new;
+    if(nw)S.menus.push(ED); else S.menus=S.menus.map(m=>m.id===ED.id?ED:m);
+    save();closeSheet();TAB='build';render(true);toast('保存しました');return; }
+  if(k==='del'){
+    const inPlans=S.plans.filter(p=>p.days.some(d=>d.menuId===ED.id));
+    const msg=inPlans.length?'このメニューはプラン「'+inPlans.map(p=>p.name).join('」「')+'」で使われています。\n削除すると、その日は「未設定」になります。削除しますか？':'このメニューを削除しますか？';
+    if(confirm(msg)){ S.menus=S.menus.filter(m=>m.id!==ED.id);
+      S.plans.forEach(p=>p.days.forEach(d=>{if(d.menuId===ED.id)d.menuId='';}));
+      save();closeSheet();render(); } return; }
+}
+function pld(t){
+  const k=t.dataset.pl,row=t.closest('[data-i]'),i=row?+row.dataset.i:0,b=$('#shBody');
+  const rd=()=>{ const n=b.querySelector('[data-pl="name"]'); if(n)ED.name=n.value;
+    b.querySelectorAll('[data-pl="dlabel"]').forEach((el,x)=>{if(ED.days[x])ED.days[x].label=el.value;});
+    b.querySelectorAll('[data-pl="dmenu"]').forEach((el,x)=>{if(ED.days[x])ED.days[x].menuId=el.value;});
+    b.querySelectorAll('[data-pl="wlabel"]').forEach((el,x)=>{if(ED.weeks[x])ED.weeks[x].label=el.value;});
+    b.querySelectorAll('[data-pl="wscale"]').forEach((el,x)=>{if(ED.weeks[x])ED.weeks[x].scale=+el.value||100;});
+    const cw=b.querySelector('[data-pl="curw"]'),cd=b.querySelector('[data-pl="curd"]'),cy=b.querySelector('[data-pl="cycle"]');
+    if(cw)ED.curW=+cw.value||0; if(cd)ED.curD=+cd.value||0; if(cy)ED.cycle=Math.max(1,+cy.value||1); };
+  rd();
+  if(k==='addday'){ ED.days.push({label:'Day'+(ED.days.length+1),menuId:S.menus[0]?S.menus[0].id:''});drawPlan(1);return; }
+  if(k==='rmday'){ if(ED.days.length<2){toast('最低1日は必要です');return;} ED.days.splice(i,1);ED.curD=0;drawPlan(1);return; }
+  if(k==='addweek'){ ED.weeks.push({label:(ED.weeks.length+1)+'週目',scale:100,deload:false});
+    if(ED.weeks.length===2)ED.weeks[0].label='1週目'; drawPlan(1);return; }
+  if(k==='rmweek'){ if(ED.weeks.length<2)return; ED.weeks.splice(i,1);ED.curW=0;drawPlan(1);return; }
+  if(k==='tpl4'){ ED.weeks=[{label:'1週目',scale:100},{label:'2週目',scale:102.5},{label:'3週目',scale:105},{label:'デロード',scale:85,deload:true}];
+    ED.curW=0;drawPlan(1);return; }
+  if(k==='wn'){ const w=ED.weeks[i]; w.scale=Math.max(50,(+w.scale||100)+(+t.dataset.v)); drawPlan(1);return; }
+  if(k==='save'){ if(!ED.name)ED.name='無題のプラン';
+    const nw=ED._new;delete ED._new;
+    if(nw)S.plans.push(ED); else S.plans=S.plans.map(p=>p.id===ED.id?ED:p);
+    save();closeSheet();TAB='build';render(true);toast('保存しました');return; }
+  if(k==='del'){ if(confirm('このプランを削除しますか？')){S.plans=S.plans.filter(p=>p.id!==ED.id);save();closeSheet();render();} return; }
+}
+document.addEventListener('input',ev=>{
+  const el=ev.target;
+  const st=el.closest('.st');
+  if(st&&S.active){ S.active.items[+st.dataset.i].sets[+st.dataset.j][el.dataset.f]=el.value;save();return; }
+  if(el.id==='fxKgI'||el.id==='fxRepI'){ paintFX();return; }
+  if(el.id==='fxRpeI'){ FX.rt=true;return; }
+  if(el.dataset.preset!=null){ S.settings.presets[+el.dataset.preset]=parseTimeText(el.value);save();return; }
+  if(el.dataset.cfg){ const c=el.dataset.cfg;
+    S.settings[c]=(c==='scName'||c==='scAfter')?el.value:c==='autoTimer'?el.value==='1':(+el.value||(c==='round'?2.5:0));
+    save();return; }
+});
+/* 基準1RMの書き換えは、入力を終えたときに1回だけ確認する（同じ値なら何もしない） */
+document.addEventListener('change',ev=>{
+  const el=ev.target; if(!el.dataset||!el.dataset.rm)return;
+  const id=el.dataset.rm, v=+el.value||0, old=+S.oneRM[id]||0;
+  if(v===old)return;
+  const src=baseSrc(id);
+  if(src.from==='log'&&Math.round(src.v*10)/10!==v&&
+     !confirm('いまの基準は記録から計算した '+fmt(Math.round(src.v*10)/10)+'kg です。\n'+fmt(v)+'kg に置き換えて、ここから数え直しますか？')){ el.value=old||''; return; }
+  S.oneRM[id]=v; S.rmAt[id]=Date.now(); save();
+  const tag=document.querySelector('[data-rmsrc="'+id+'"]'); if(tag)tag.textContent='いまの基準：'+fmt(v)+'kg（この値から数え直します）';
+});
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden&&T.h)tick(); });
+
+/* 起動 */
+load(); autoBackup(); TAB='today'; document.getElementById('ver').textContent='v'+VER; render();
+setTimeout(()=>{ if(!S.tour&&!S.menus.length&&!S.logs.length)tour(); },400);
+if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
