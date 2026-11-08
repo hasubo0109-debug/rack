@@ -87,9 +87,21 @@ label.f{display:block;font-size:12px;color:var(--mute);margin:12px 0 5px}
 .exhd .nm{font-weight:800;font-size:16px}
 .exhd .tag{font-size:11px;color:var(--mute);margin-left:auto;text-align:right;line-height:1.3}
 .sets{padding:6px 10px 12px}
-.st{display:grid;grid-template-columns:18px 1fr 1fr 50px;gap:6px;align-items:center;margin-bottom:8px}
-.st .stp button{width:32px;height:44px;font-size:18px}
+.st{display:grid;grid-template-columns:14px minmax(0,1.3fr) minmax(0,1fr) 46px 44px;gap:5px;align-items:center;margin-bottom:8px}
+.st .stp button{width:29px;height:44px;font-size:17px}
+.st .stp.r button{width:26px}
 .st .stp input{font-size:16px}
+.st .rpe{height:44px;width:100%;padding:0;text-align:center;font-weight:800;font-size:16px;border-radius:10px;background:var(--field)}
+.st .rpe::placeholder{color:#AEB3BA;font-weight:700}
+.st.done .rpe{opacity:.5}
+.recs{margin:2px 14px 10px;background:#FBEEF1;border-radius:11px;padding:10px 12px}
+.rec{display:flex;align-items:center;gap:10px}
+.rec+.rec{border-top:1px solid #F1D5DC;margin-top:8px;padding-top:8px}
+.rec .why{flex:1;min-width:0;font-size:12px;color:#A3203F;line-height:1.4}
+.rec .why b{display:block;color:#7A1830;font-size:11px;font-weight:700}
+.rec .val{font-size:26px;font-weight:900;color:var(--red);letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rec .val small{font-size:12px;font-weight:700;margin-left:2px;color:#A3203F}
+.recs .warn{font-size:11.5px;color:#7A1830;margin-top:6px}
 .st .idx{font-size:12px;color:var(--mute);font-weight:700;text-align:center}
 .st .chk{height:44px;border:2px solid var(--line);border-radius:10px;display:flex;align-items:center;
   justify-content:center;font-size:19px;color:#C9CCD1;font-weight:800;transition:background .12s,border-color .12s,color .12s}
@@ -98,7 +110,7 @@ label.f{display:block;font-size:12px;color:var(--mute);margin:12px 0 5px}
 .st.done .chk{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 .st.done .stp{opacity:.5}
 .st .u{font-size:10px;color:var(--mute);text-align:center;margin-top:-4px}
-.sthead{display:grid;grid-template-columns:18px 1fr 1fr 50px;gap:6px;padding:0 10px 4px;font-size:10px;color:var(--mute);text-align:center}
+.sthead{display:grid;grid-template-columns:14px minmax(0,1.3fr) minmax(0,1fr) 46px 44px;gap:5px;padding:0 10px 4px;font-size:10px;color:var(--mute);text-align:center}
 .goal{padding:0 14px 10px;font-size:11.5px;color:var(--mute)}
 .stickybar{position:fixed;left:0;right:0;bottom:calc(72px + var(--safe-b));z-index:38;transition:bottom .2s;
   padding:9px var(--pad);background:var(--paper);border-top:1px solid var(--line);display:flex;gap:8px;max-width:680px;margin:0 auto}
@@ -247,8 +259,9 @@ table.log td:last-child{text-align:right;font-weight:700}
 
 <script>
 'use strict';
-const VER='2.5';
-const CHANGES=[['2.5','自重種目（RPEから回数を自動計算・アシスト対応）/ RPEなしでも指定どおりできたら次回+2.5kg / 潰れたら基準を下げる / 夜の練習で日付をまたいでも途中扱いにしない / 周回と通算週の表示 / 休み明けの軽め開始 / 履歴を月ごとに / 記録の修正で日付変更・セット追加 ほか'],
+const VER='2.6';
+const CHANGES=[['2.6','セットの行にRPE欄を追加（目安を薄く表示・触らなければ目安どおり）/ 種目ごとに推奨重量と計算の根拠を表示 / 入れたRPEは次回の推奨重量に反映'],
+ ['2.5','自重種目（RPEから回数を自動計算・アシスト対応）/ RPEなしでも指定どおりできたら次回+2.5kg / 潰れたら基準を下げる / 夜の練習で日付をまたいでも途中扱いにしない / 周回と通算週の表示 / 休み明けの軽め開始 / 履歴を月ごとに / 記録の修正で日付変更・セット追加 ほか'],
  ['2.4','推奨重量が勝手に上がり続ける問題を修正 / ダンベル等の重量刻みを種目ごとに / 終了・とばすに確認 / 書き出しを共有シートに / 途中のセッションの扱い / 週ボリュームを暦どおりに ほか'],
  ['2.3','✓を押しても画面が先頭に戻らないよう修正 / 次にやるセットを赤く表示 / フォーカス中に残り時間を表示'],
  ['2.2','「前回と同じ」ボタン / 記録の修正 / 週1の自動バックアップと復元 / 週ごとの総ボリューム'],
@@ -399,7 +412,9 @@ function baseSrc(exId){
     if(l.dl){ // デロード・軽めの日は、潰れたときだけ下げる
       if(failed.length){ const e=minPos(failed.map(x=>e1rm(+x.kg,+x.reps,10))); if(e&&e<b)b+=0.6*(e-b); } return; }
     const rp=sets.filter(x=>+x.rpe>=7), low=sets.filter(x=>+x.rpe>0&&+x.rpe<7);
-    if(rp.length){ const e=maxOf(rp.map(E1)); if(e)b+=0.6*(e-b); return; }
+    if(rp.length){ // RPEを入れた日：入れたセットの平均で判定（一番楽なセットだけを拾わない）
+      const es=rp.map(E1).filter(v=>v>0);
+      const e=es.reduce((a,v)=>a+v,0)/es.length; if(e)b+=0.6*(e-b); return; }
     if(failed.length){ const e=minPos(failed.map(x=>e1rm(+x.kg,+x.reps,10))); if(e&&e<b)b+=0.6*(e-b); return; }
     const pres=sets.filter(x=>+x.tp>0);
     const bump=(pres.length&&l.pk!==0)?step/(maxOf(pres.map(x=>+x.tp))/100):0;
@@ -420,7 +435,8 @@ function bwBase(exId,kg){
     const failed=sets.filter(x=>+x.tr&&+x.reps<+x.tr&&!(+x.rpe));
     if(l.dl){ if(failed.length){ const e=minPos(failed.map(x=>+x.reps)); if(e&&e<b)b+=0.6*(e-b); } return; }
     const rp=sets.filter(x=>+x.rpe>=7), low=sets.filter(x=>+x.rpe>0&&+x.rpe<7);
-    if(rp.length){ b+=0.6*(maxOf(rp.map(est))-b); return; }
+    if(rp.length){ const es=rp.map(est);
+      b+=0.6*(es.reduce((a,v)=>a+v,0)/es.length-b); return; }
     if(failed.length){ const e=minPos(failed.map(x=>+x.reps)); if(e&&e<b)b+=0.6*(e-b); return; }
     const met=sets.some(x=>+x.tr>0);
     b=Math.max(b+(met&&l.pk!==0?1:0), low.length?maxOf(low.map(est)):0, met?maxOf(sets.map(est)):0, b);
@@ -450,6 +466,9 @@ function goalFor(g,exId,scale){
 const gLabel=(g,exId)=>(exId&&isBW(exId))?
   g.sets+'セット × '+(g.mode==='reps'?(g.reps||'?')+'回':'RPE'+(g.rpe||8))+'（'+loadTxt(g.kg)+'）':
   g.sets+'セット × '+(g.reps||'?')+'回 '+(g.mode==='kg'?(g.kg||0)+'kg':g.mode==='pct'?(g.pct||0)+'%':'RPE'+(g.rpe||8));
+const gShort=(g,exId)=>(exId&&isBW(exId))?
+  g.sets+'セット × '+(g.mode==='reps'?(g.reps||'?')+'回':'RPE'+(g.rpe||8)):
+  g.sets+'×'+(g.reps||'?')+' '+(g.mode==='kg'?'重量指定':g.mode==='pct'?(g.pct||0)+'%':'RPE'+(g.rpe||8));
 const defGroup=exId=>isBW(exId)?{sets:3,mode:'rpe',rpe:8,kg:0,reps:0}:{sets:3,mode:'rpe',reps:5,rpe:8};
 function lastItem(exId,skipDl){
   const ls=S.logs.slice().sort((a,b)=>logTime(b)-logTime(a));
@@ -458,13 +477,16 @@ function lastItem(exId,skipDl){
 }
 function lastSets(exId){ const r=lastItem(exId,true); return r?r.it.sets:null; }
 /* 基準のない種目（補助種目など）：前回の重さ。指定回数を全部こなしていたら+1刻み */
-function nextKg(exId){
-  const r=lastItem(exId,true); if(!r)return 0;
-  const sets=r.it.sets, kg=maxOf(sets.map(x=>+x.kg||0)); if(!kg)return 0;
+function nextKgInfo(exId){
+  const r=lastItem(exId,true); if(!r)return {kg:0,why:'前回の記録なし'};
+  const sets=r.it.sets, kg=maxOf(sets.map(x=>+x.kg||0)); if(!kg)return {kg:0,why:'前回の記録なし'};
   const met=sets.some(x=>+x.tr)&&sets.every(x=>!+x.tr||+x.reps>=+x.tr);
   const hard=sets.some(x=>+x.rpe>=9.5);
-  return met&&!hard&&!r.l.dl?kg+stepOf(exId):kg;
+  const d=(+r.l.date.slice(5,7))+'/'+(+r.l.date.slice(8));
+  if(met&&!hard&&!r.l.dl)return {kg:kg+stepOf(exId),why:'前回('+d+') '+fmt(kg)+'kg 全回数できた → +'+fmt(stepOf(exId))+'kg'};
+  return {kg:kg,why:'前回('+d+') '+fmt(kg)+'kg'+(hard?'・RPE9.5以上だったので据え置き':'と同じ')};
 }
+function nextKg(exId){ return nextKgInfo(exId).kg; }
 function lastLog(exId){
   const r=lastItem(exId,false); if(!r)return '';
   const bw=isBW(exId), sets=r.it.sets;
@@ -567,6 +589,14 @@ function vToday(){
 }
 /* 日付が変わっても、始めてから6時間以内なら「同じ日の練習」とみなす */
 const isStale=a=>a.date!==todayStr()&&(Date.now()-(+a.ts||0))>6*3600e3;
+/* 種目ごとの推奨重量の帯（スクマニ風） */
+function recBand(it,bw){
+  if(!it.rec||!it.rec.length)return '';
+  return '<div class="recs">'+it.rec.map(r=>'<div class="rec"><div class="why">'+(r.h?'<b>'+esc(r.h)+'</b>':'')+
+    (bw?'推奨回数':'推奨重量')+'｜'+esc(r.why)+'</div><div class="val">'+esc(r.v)+(r.u?'<small>'+r.u+'</small>':'')+'</div></div>').join('')+
+    (it.note&&!it.note.includes('抑え')?'<div class="warn">⚠ '+esc(it.note)+'</div>':'')+'</div>';
+}
+const normRpe=v=>{ v=+v; if(!v)return ''; if(v<5||v>10)return null; return Math.round(v*2)/2; };
 function vSession(){
   const a=S.active; let tot=0,dn=0,vol=0;
   a.items.forEach(it=>it.sets.forEach(s=>{tot++;if(s.done){dn++;vol+=setVol(it.exId,s);}}));
@@ -588,17 +618,18 @@ function vSession(){
     const e=EX(it.exId), lg=lastLog(it.exId), bw=!!e.bw;
     h+='<div class="card"><div class="exhd"><div class="nm">'+esc(e.name)+'</div>'+
       '<div class="tag">'+(lg?'前回 '+esc(lg):'')+'</div></div>'+
-      '<div class="goal">目標 '+esc(it.goal||'')+'</div>'+
-      '<div class="sthead"><span></span><span>'+(bw?'負荷 kg（−はアシスト）':'重量 kg')+'</span><span>回数</span><span>完了</span></div><div class="sets">';
+      '<div class="goal">'+esc((it.goal||'').split('　⚠')[0])+'</div>'+recBand(it,bw)+
+      '<div class="sthead"><span></span><span>'+(bw?'負荷 kg（−はアシスト）':'重量 kg')+'</span><span>回数</span><span>RPE</span><span>完了</span></div><div class="sets">';
     it.sets.forEach((s,j)=>{
       h+='<div class="st'+(s.done?' done':'')+'" data-i="'+i+'" data-j="'+j+'">'+
         '<div class="idx num">'+(j+1)+'</div>'+
         '<div class="stp"><button data-act="nudge" data-f="kg" data-v="-1">−</button>'+
         '<input class="grow num" type="number" inputmode="decimal" data-f="kg" value="'+(+s.kg?fmt(+s.kg):'')+'" placeholder="'+(bw?'自重':'—')+'">'+
         '<button data-act="nudge" data-f="kg" data-v="1">＋</button></div>'+
-        '<div class="stp"><button data-act="nudge" data-f="reps" data-v="-1">−</button>'+
+        '<div class="stp r"><button data-act="nudge" data-f="reps" data-v="-1">−</button>'+
         '<input class="grow num" type="number" inputmode="numeric" data-f="reps" value="'+(s.reps||'')+'">'+
         '<button data-act="nudge" data-f="reps" data-v="1">＋</button></div>'+
+        '<input class="rpe num" type="number" inputmode="decimal" step="0.5" data-f="rpe" value="'+(+s.rpe?fmt(+s.rpe):'')+'" placeholder="'+(+s.trpe?fmt(+s.trpe):'')+'">'+
         '<button class="chk" data-act="chk">✓</button></div>';
     });
     h+='</div><div class="row wrap" style="padding:0 14px 12px">'+
@@ -776,31 +807,39 @@ function vSet(){
 function startSession(menuObj,scale,title,src,opt){
   opt=opt||{}; const sc=scale==null?100:scale;
   const items=menuObj.items.map(it=>{
-    const sets=[], notes=[];
+    const sets=[], notes=[], rec=[], multi=(it.groups||[]).length>1;
+    const head=g=>multi?gShort(g,it.exId):'';
     if(isBW(it.exId)){
       (it.groups||[]).forEach(g=>{
         const load=+g.kg||0; let reps,trpe='';
-        if(g.mode==='reps'){ reps=+g.reps||''; }
+        if(g.mode==='reps'){ reps=+g.reps||''; rec.push({h:head(g),why:'回数を直接指定（'+loadTxt(load)+'）',v:reps,u:'回'}); }
         else { reps=bwReps(g,it.exId,sc)||''; trpe=fmt(10-bwRir(g,sc));
+          const bb=bwBase(it.exId,load);
+          rec.push({h:head(g),why:bb?'推定最大 '+fmt(Math.round(bb*10)/10)+'回 − 余力'+fmt(bwRir(g,sc))+'回（'+loadTxt(load)+'）':'最大回数が未設定',v:reps||'—',u:reps?'回':''});
           if(!reps)notes.push('最大回数が未設定です。メニュー編集で入れると回数が出ます'); }
         for(let n=0;n<(g.sets||1);n++) sets.push({kg:load,reps:reps,rpe:'',trpe:trpe,tp:0,tr:+reps||0,done:false});
       });
     }else{
-      const b=baseRM(it.exId);
+      const src=baseSrc(it.exId), b=src.v;
       (it.groups||[]).forEach(g=>{
-        let tk=gTarget(g,it.exId,sc);
+        let tk=gTarget(g,it.exId,sc), why='', capped=false;
+        if(g.mode==='kg'){ why='重量を直接指定'+(sc!==100?' × 今週'+sc+'%':''); }
+        else if(b){ const pc=(g.mode==='pct'?(g.pct||0):rpePct(g.reps,g.rpe||8))*sc/100;
+          why=(src.from==='log'?'推定1RM ':'基準1RM ')+fmt(Math.round(b*10)/10)+'kg × '+fmt(Math.round(pc*10)/10)+'%'; }
         if(tk&&b&&(g.reps||1)>=2&&(g.mode==='rpe'||(g.mode==='pct'&&sc>100))){
           let lim=roundFor(b*rpePct(g.reps,9.5)/100,it.exId);
           if(g.mode==='pct')lim=Math.max(lim,roundFor(b*(g.pct||0)/100,it.exId));
-          if(tk>lim){ tk=lim; notes.push('重すぎるためRPE9.5相当に抑えています'); } }
-        if(!tk&&g.mode!=='kg')tk=nextKg(it.exId);
+          if(tk>lim){ tk=lim; capped=true; notes.push('重すぎるためRPE9.5相当に抑えています'); } }
+        if(!tk&&g.mode!=='kg'){ const nk=nextKgInfo(it.exId); tk=nk.kg; why=nk.why; }
+        rec.push({h:head(g),why:why+(capped?'（RPE9.5相当に抑制）':''),v:tk?fmt(tk):'—',u:tk?'kg':''});
         const tp=(b&&tk)?tk/b*100:0;
         const trpe=(g.mode==='rpe'&&sc===100&&tp)?(g.rpe||8):pctToRpe(g.reps,tp);
         for(let n=0;n<(g.sets||1);n++) sets.push({kg:tk||'',reps:g.reps||'',rpe:'',trpe:trpe||'',tp:tp,tr:g.reps||0,done:false});
       });
     }
     return {exId:it.exId,rest:it.rest||EX(it.exId).rest||S.settings.rest,
-      goal:(it.groups||[]).map(g=>goalFor(g,it.exId,sc)).join(' / ')+(notes.length?'　⚠'+notes[0]:''),sets:sets};
+      goal:(it.groups||[]).map(g=>goalFor(g,it.exId,sc)).join(' / ')+(notes.length?'　⚠'+notes[0]:''),
+      rec:rec,note:notes[0]||'',sets:sets};
   });
   S.active={date:todayStr(),ts:Date.now(),title:title,source:src||null,dl:!!opt.dl,pk:opt.pk===false?0:1,items:items};
   save();render(true);
@@ -808,7 +847,7 @@ function startSession(menuObj,scale,title,src,opt){
 function finish(opt){
   opt=opt||{}; const a=S.active;
   const items=a.items.map(it=>({exId:it.exId,name:EX(it.exId).name,
-    sets:it.sets.filter(s=>s.done).map(s=>({kg:+s.kg||0,reps:+s.reps||0,rpe:+s.rpe||0,t:+s.trpe||0,tp:+s.tp||0,tr:+s.tr||0}))})).filter(i=>i.sets.length);
+    sets:it.sets.filter(s=>s.done).map(s=>({kg:+s.kg||0,reps:+s.reps||0,rpe:+normRpe(s.rpe)||0,t:+s.trpe||0,tp:+s.tp||0,tr:+s.tr||0}))})).filter(i=>i.sets.length);
   if(!items.length){ if(!confirm('完了したセットがありません。このセッションを破棄しますか？'))return; S.active=null;save();render(true);return; }
   const left=a.items.reduce((n,it)=>n+it.sets.filter(x=>!x.done).length,0);
   if(left&&!confirm('まだ'+left+'セット残っています。\nここで終了して、終わった分だけ記録しますか？'))return;
@@ -1165,6 +1204,19 @@ const MAN=[
   '<p>「今日」タブの赤いボタンを押すだけで始まります。プランを作ってあれば、次にやる日が自動で表示されます。</p>'+
   '<img class="shot" src="man-session.png" alt="セッション画面">'+
   '<p><b>次にやるセットは番号と✓が赤</b>になります。今どこまで終わったか、画面を見た瞬間に分かります。</p>'+
+  '<h3>推奨重量の帯</h3>'+
+  '<p>種目名の下の赤い帯に、<b>推奨重量と、それを何から計算したか</b>が出ます。'+
+  '例：<b>推定1RM 130kg × 81.1% → 105kg</b>（5回をRPE8でやるなら1RMの81.1%）。'+
+  'セット構成が2つある種目は、構成ごとに1行ずつ出ます。補助種目は「前回60kg 全回数できた → +2.5kg」のように理由が出ます。</p>'+
+  '<h3>RPE欄</h3>'+
+  '<p>各セットの<b>RPE</b>欄には、目安のRPEが薄い数字で入っています。</p>'+
+  '<div class="note"><b>RPEの入れ方</b>'+
+  '・<b>目安どおりだった</b> → 何も触らずに✓。目安どおりとして記録します<br>'+
+  '・<b>目安と違った</b> → RPE欄をタップして実際の数字を入れてから✓（5〜10、0.5刻み）<br>'+
+  '入れたRPEは<b>次回の推奨重量</b>に反映されます。その日の残りのセットの重さは変わりません。</div>'+
+  '<div class="note"><b>全部のセットに入れなくて大丈夫です</b>'+
+  '1セット目だけ入れれば十分です。入れたセットのRPEだけを使って計算します。'+
+  '目安8のところRPE9だった（きつかった）なら次回は少し軽く、RPE7だった（楽だった）なら少し重くなります。</div>'+
   '<p>重量と回数は＋−ボタンで変えられます。キーボードを出さずに片手で操作できます。'+
   '右の<b>✓</b>を押すとそのセットが完了になり、休憩タイマーが自動で始まります。</p>'+
   '<div class="note"><b>前回◯◯kg×◯</b>種目名の右に、その種目の前回の実績が出ます。</div>'+
@@ -1259,7 +1311,7 @@ const MAN=[
   '<p>推定1RMは、実際に挙げた重量・回数・RPEから計算した「1回なら何kg挙がるか」です。'+
   'この数字が推奨重量の基準になり、記録をつけるたびに次のように更新されます。</p>'+
   '<div class="note"><b>基準の動き方</b>'+
-  '・<b>RPEを入れた</b> → そのRPEから計算した値に近づけます（RPE8のつもりがRPE7だった、なら上がります）<br>'+
+  '・<b>RPEを入れた</b> → 入れたセットの平均から計算した値に近づけます（RPE8のつもりがRPE7だった、なら上がります）<br>'+
   '・<b>RPEなしで全回数できた</b> → 次回+2.5kg（%を週で変えるプランは、一番重い週のあとだけ）<br>'+
   '・<b>回数が足りなかった</b> → 潰れた重さから計算して下げます<br>'+
   '・<b>デロード・軽めの日</b> → 基準は動かしません（潰れたときだけ下げます）<br>'+
@@ -1335,6 +1387,7 @@ function act(t,ev){
     if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
     s.done=!s.done; r.classList.toggle('done',s.done);
     if(s.done){ const ip=r.querySelectorAll('input'); s.kg=+ip[0].value||0;s.reps=+ip[1].value||0;
+      const rv=normRpe(ip[2].value); s.rpe=rv==null?'':rv; if(rv==null){ip[2].value='';toast('RPEは5〜10で入れてください（今回は目安どおりで記録）');}
       if(!ip[0].value&&s.kg)ip[0].value=fmt(s.kg); if(!ip[1].value&&s.reps)ip[1].value=s.reps; }
     save(); refreshHead(); markNext();
     if(s.done)autoRest(it.rest);
@@ -1527,6 +1580,15 @@ document.addEventListener('input',ev=>{
   if(el.dataset.cfg){ const c=el.dataset.cfg;
     S.settings[c]=(c==='scName'||c==='scAfter')?el.value:c==='autoTimer'?el.value==='1':(+el.value||(c==='round'?2.5:0));
     save();return; }
+});
+/* セット行のRPE：5〜10・0.5刻みにそろえる */
+document.addEventListener('change',ev=>{
+  const el=ev.target; if(!el.classList||!el.classList.contains('rpe'))return;
+  const st=el.closest('.st'); if(!st||!S.active)return;
+  const x=S.active.items[+st.dataset.i].sets[+st.dataset.j], v=normRpe(el.value);
+  if(v==null){ el.value=''; x.rpe=''; toast('RPEは5〜10で入れてください'); }
+  else { el.value=v===''?'':fmt(v); x.rpe=v; }
+  save();
 });
 /* 基準1RMの書き換えは、入力を終えたときに1回だけ確認する（同じ値なら何もしない） */
 document.addEventListener('change',ev=>{
